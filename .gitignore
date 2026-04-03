@@ -1,0 +1,48 @@
+# ─── Python / Django ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+db.sqlite3
+db.sqlite3-journal
+*.egg-info/
+dist/
+build/
+*.egg
+.env
+.venv
+env/
+venv/
+
+# ─── Node / React ───
+node_modules/
+frontend/dist/
+frontend/build/
+*.local
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ───
+*.log
+npm-debug.log*
+pip_log.txt
+pip_install_log.txt
+vite_log.txt
+build_log.txt
+debug_error.log
+debug_script.py
+check.log
+pip_list.txt
+
+# ─── Docker ───
+docker-compose.override.yml
