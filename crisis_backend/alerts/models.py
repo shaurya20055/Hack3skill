@@ -67,8 +67,20 @@ class Alert(models.Model):
     ai_summary = models.TextField(blank=True, default='')
     resolved_at = models.DateTimeField(null=True, blank=True)
 
+    # New fields for enhanced functionality
+    priority_score = models.IntegerField(default=0, help_text='AI-computed priority score')
+    escalated = models.BooleanField(default=False, help_text='Whether this alert has been auto-escalated')
+    group_id = models.CharField(max_length=50, blank=True, default='', help_text='Group ID for related incidents')
+
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['status'], name='idx_alert_status'),
+            models.Index(fields=['severity'], name='idx_alert_severity'),
+            models.Index(fields=['timestamp'], name='idx_alert_timestamp'),
+            models.Index(fields=['emergency_type'], name='idx_alert_type'),
+            models.Index(fields=['status', 'severity'], name='idx_alert_status_sev'),
+        ]
 
     def __str__(self):
         return f"Alert #{self.id} [{self.get_emergency_type_display()}] - {self.severity} - {self.status}"
@@ -98,6 +110,41 @@ class ChatMessage(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['alert', 'timestamp'], name='idx_chat_alert_ts'),
+        ]
 
     def __str__(self):
         return f"[{self.sender_role}] {self.message[:50]}"
+
+
+class AuditLog(models.Model):
+    """Track who changed what and when for compliance."""
+    ACTION_TYPES = [
+        ('status_change', 'Status Change'),
+        ('staff_assign', 'Staff Assignment'),
+        ('escalation', 'Auto-Escalation'),
+        ('broadcast', 'System Broadcast'),
+        ('resolve', 'Resolved'),
+    ]
+
+    alert = models.ForeignKey(
+        Alert, on_delete=models.CASCADE, related_name='audit_logs',
+        null=True, blank=True
+    )
+    action = models.CharField(max_length=30, choices=ACTION_TYPES)
+    performed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='audit_actions'
+    )
+    details = models.JSONField(default=dict, blank=True)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['alert', 'timestamp'], name='idx_audit_alert_ts'),
+        ]
+
+    def __str__(self):
+        return f"Audit: {self.action} on Alert #{self.alert_id} at {self.timestamp}"

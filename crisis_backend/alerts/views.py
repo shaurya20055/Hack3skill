@@ -5,9 +5,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, F
 from django.db.models.functions import TruncDate, TruncHour
-from .models import Property, Alert, ChatMessage
+from .models import Property, Alert, ChatMessage, AuditLog
 from .serializers import (
     PropertySerializer, AlertSerializer, UserSerializer,
     ChatMessageSerializer, StaffSerializer
@@ -36,9 +36,18 @@ class AlertViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
         alert = self.get_object()
+        old_status = alert.status
         alert.status = 'resolved'
         alert.resolved_at = timezone.now()
         alert.save()
+
+        # Audit log
+        AuditLog.objects.create(
+            alert=alert, action='resolve',
+            performed_by=request.user,
+            details={'old_status': old_status}
+        )
+
         return Response({
             'status': 'Alert resolved',
             'alert_id': alert.id,
@@ -54,10 +63,19 @@ class AlertViewSet(viewsets.ModelViewSet):
                 {'error': 'Invalid status'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        old_status = alert.status
         alert.status = new_status
         if new_status == 'resolved':
             alert.resolved_at = timezone.now()
         alert.save()
+
+        # Audit log
+        AuditLog.objects.create(
+            alert=alert, action='status_change',
+            performed_by=request.user,
+            details={'old_status': old_status, 'new_status': new_status}
+        )
+
         serializer = self.get_serializer(alert)
         return Response(serializer.data)
 
@@ -67,10 +85,19 @@ class AlertViewSet(viewsets.ModelViewSet):
         staff_id = request.data.get('staff_id')
         try:
             staff = User.objects.get(id=staff_id)
+            old_staff = alert.assigned_staff_id
             alert.assigned_staff = staff
             if alert.status == 'reported':
                 alert.status = 'acknowledged'
             alert.save()
+
+            # Audit log
+            AuditLog.objects.create(
+                alert=alert, action='staff_assign',
+                performed_by=request.user,
+                details={'old_staff_id': old_staff, 'new_staff_id': staff_id}
+            )
+
             serializer = self.get_serializer(alert)
             return Response(serializer.data)
         except User.DoesNotExist:
@@ -85,6 +112,19 @@ class AlertViewSet(viewsets.ModelViewSet):
         messages = alert.messages.all()
         serializer = ChatMessageSerializer(messages, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def audit_trail(self, request, pk=None):
+        """Get the audit trail for a specific alert."""
+        alert = self.get_object()
+        logs = alert.audit_logs.all()
+        data = [{
+            'action': log.action,
+            'performed_by': log.performed_by.username if log.performed_by else 'System',
+            'details': log.details,
+            'timestamp': log.timestamp.isoformat(),
+        } for log in logs]
+        return Response(data)
 
 
 class StaffListView(generics.ListAPIView):
@@ -115,7 +155,7 @@ class AIChatView(APIView):
 
 
 class AnalyticsView(APIView):
-    """Analytics and reporting endpoint."""
+    """Expanded analytics and reporting endpoint."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -131,7 +171,7 @@ class AnalyticsView(APIView):
         active_incidents = all_alerts.exclude(status='resolved').count()
         resolved_incidents = resolved.count()
 
-        # Average response time (for resolved alerts)
+        # Average response time
         avg_response = None
         response_times = []
         for a in resolved.filter(resolved_at__isnull=False):
@@ -162,7 +202,6 @@ class AnalyticsView(APIView):
             .annotate(count=Count('id'))
             .order_by('date')
         )
-        # Convert dates to strings
         for item in by_date:
             item['date'] = item['date'].isoformat() if item['date'] else ''
 
@@ -173,10 +212,43 @@ class AnalyticsView(APIView):
             .order_by('-count')
         )
 
-        # Top threat scores
+        # Severity breakdown
         critical_count = all_alerts.filter(severity='critical').count()
         medium_count = all_alerts.filter(severity='medium').count()
         low_count = all_alerts.filter(severity='low').count()
+
+        # ═══ NEW: Peak hours analysis ═══
+        peak_hours = list(
+            all_alerts.annotate(hour=TruncHour('timestamp'))
+            .values('hour')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5]
+        )
+        for item in peak_hours:
+            item['hour'] = item['hour'].strftime('%Y-%m-%d %H:00') if item['hour'] else ''
+
+        # ═══ NEW: Heatmap data (lat/lng density) ═══
+        heatmap_data = list(
+            all_alerts.filter(lat__isnull=False, lng__isnull=False)
+            .values('lat', 'lng', 'severity', 'threat_score')
+        )
+
+        # ═══ NEW: Staff performance ═══
+        staff_performance = []
+        staff_with_alerts = User.objects.filter(
+            assigned_alerts__timestamp__gte=since
+        ).distinct()
+        for staff in staff_with_alerts:
+            staff_alerts = staff.assigned_alerts.filter(timestamp__gte=since)
+            staff_resolved = staff_alerts.filter(status='resolved', resolved_at__isnull=False)
+            staff_rts = [a.response_time_seconds for a in staff_resolved if a.response_time_seconds]
+            staff_performance.append({
+                'id': staff.id,
+                'name': f"{staff.first_name or staff.username} {staff.last_name or ''}".strip(),
+                'total_assigned': staff_alerts.count(),
+                'resolved': staff_resolved.count(),
+                'avg_response_time': round(sum(staff_rts) / len(staff_rts), 1) if staff_rts else None,
+            })
 
         # AI insights
         incident_data = list(all_alerts.values(
@@ -198,6 +270,9 @@ class AnalyticsView(APIView):
                 'medium': medium_count,
                 'low': low_count,
             },
+            'peak_hours': peak_hours,
+            'heatmap_data': heatmap_data,
+            'staff_performance': staff_performance,
             'ai_insights': ai_insights,
         })
 
@@ -241,6 +316,7 @@ class SeedDataView(APIView):
                 severity=sev,
                 status=stat,
                 threat_score=score,
+                priority_score=score,
                 lat=28.6139 + random.uniform(-0.01, 0.01),
                 lng=77.2090 + random.uniform(-0.01, 0.01),
                 room_number=random.choice(rooms),

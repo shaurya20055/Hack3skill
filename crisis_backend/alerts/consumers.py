@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Alert, ChatMessage
+from .models import Alert, ChatMessage, AuditLog
 from .ai_service import classify_threat
 
 
@@ -51,6 +51,11 @@ class AlertConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+            # Auto-escalation check — schedule check for unresolved alerts
+            # (In production, use Celery; here we log intent)
+            if ai_result.get('severity') == 'critical':
+                await self.check_auto_escalation(alert_data['id'])
+
         elif event_type == 'chat_message':
             alert_id = data.get('alert_id')
             message = data.get('message', '')
@@ -73,6 +78,10 @@ class AlertConsumer(AsyncWebsocketConsumer):
         elif event_type == 'broadcast_alert':
             # System-wide broadcast (e.g., evacuation notice)
             broadcast_text = data.get('message', '')
+
+            # Log broadcast in audit
+            await self.log_audit(None, 'broadcast', None, {'message': broadcast_text})
+
             await self.channel_layer.group_send(
                 self.group_name,
                 {
@@ -95,6 +104,33 @@ class AlertConsumer(AsyncWebsocketConsumer):
                             'alert': alert_data
                         }
                     )
+
+        elif event_type == 'typing_indicator':
+            # Broadcast typing indicator to other users
+            alert_id = data.get('alert_id')
+            sender_name = data.get('sender_name', 'Someone')
+            is_typing = data.get('is_typing', False)
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    'type': 'typing_broadcast',
+                    'alert_id': alert_id,
+                    'sender_name': sender_name,
+                    'is_typing': is_typing,
+                }
+            )
+
+        elif event_type == 'delivery_ack':
+            # Acknowledge message delivery
+            message_id = data.get('message_id')
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    'type': 'delivery_acknowledgment',
+                    'message_id': message_id,
+                    'acknowledged_by': data.get('acknowledged_by', 'Unknown'),
+                }
+            )
 
     # --- Group message handlers ---
     async def new_alert(self, event):
@@ -122,6 +158,21 @@ class AlertConsumer(AsyncWebsocketConsumer):
             'alert': event['alert']
         }))
 
+    async def typing_broadcast(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'typing_indicator',
+            'alert_id': event['alert_id'],
+            'sender_name': event['sender_name'],
+            'is_typing': event['is_typing'],
+        }))
+
+    async def delivery_acknowledgment(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'delivery_ack',
+            'message_id': event['message_id'],
+            'acknowledged_by': event['acknowledged_by'],
+        }))
+
     # --- DB operations ---
     @database_sync_to_async
     def create_alert(self, coordinates, ai_result, emergency_type, details, room_number):
@@ -133,6 +184,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
             room_number=room_number,
             threat_score=ai_result['threat_score'],
             severity=ai_result['severity'],
+            priority_score=ai_result['threat_score'],
             ai_suggestion=ai_result.get('ai_suggestion', ''),
             ai_summary=ai_result.get('ai_summary', ''),
             trigger_type='sos_button',
@@ -188,3 +240,23 @@ class AlertConsumer(AsyncWebsocketConsumer):
             }
         except Alert.DoesNotExist:
             return None
+
+    @database_sync_to_async
+    def log_audit(self, alert_id, action, user_id, details):
+        AuditLog.objects.create(
+            alert_id=alert_id,
+            action=action,
+            performed_by_id=user_id,
+            details=details or {},
+        )
+
+    @database_sync_to_async
+    def check_auto_escalation(self, alert_id):
+        """Mark critical alerts for escalation tracking."""
+        try:
+            alert = Alert.objects.get(id=alert_id)
+            if alert.severity == 'critical' and not alert.escalated:
+                alert.escalated = True
+                alert.save(update_fields=['escalated'])
+        except Alert.DoesNotExist:
+            pass
