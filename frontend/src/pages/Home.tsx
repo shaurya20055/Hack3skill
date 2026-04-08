@@ -1,201 +1,478 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import './Home.css';
 import {
-  Shield, Zap, MapPin, Activity, ChevronRight, Radio, Globe, ArrowRight,
-  Flame, HeartPulse, MessageCircle, BarChart3, Bot, Megaphone
+  Shield, Zap, MapPin, Activity, ChevronRight, Radio, ArrowRight,
+  Flame, MessageCircle, BarChart3, Bot, Megaphone, Globe,
+  Snowflake, Mountain, Star
 } from 'lucide-react';
 
-export const Home = () => {
+/* ───── Snowflake Particle Component ───── */
+const SnowParticles = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    const particles: { x: number; y: number; r: number; speed: number; wind: number; opacity: number; swing: number; swingSpeed: number }[] = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 3 + 1,
+        speed: Math.random() * 0.8 + 0.2,
+        wind: Math.random() * 0.4 - 0.2,
+        opacity: Math.random() * 0.6 + 0.2,
+        swing: Math.random() * Math.PI * 2,
+        swingSpeed: Math.random() * 0.02 + 0.005,
+      });
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        p.swing += p.swingSpeed;
+        p.y += p.speed;
+        p.x += p.wind + Math.sin(p.swing) * 0.3;
+
+        if (p.y > canvas.height + 10) {
+          p.y = -10;
+          p.x = Math.random() * canvas.width;
+        }
+        if (p.x > canvas.width) p.x = 0;
+        if (p.x < 0) p.x = canvas.width;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 220, 255, ${p.opacity})`;
+        ctx.fill();
+
+        // Tiny glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180, 210, 255, ${p.opacity * 0.15})`;
+        ctx.fill();
+      });
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#0b0f1a] text-[#e2e8f0] overflow-x-hidden">
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 2 }}
+    />
+  );
+};
+
+/* ───── 3D Igloo SVG Component ───── */
+const Igloo3D = () => {
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    let animId: number;
+    const animate = () => {
+      setRotation((r) => (r + 0.15) % 360);
+      animId = requestAnimationFrame(animate);
+    };
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div className="igloo-scene" style={{ perspective: '1200px' }}>
+      <div
+        className="igloo-model"
+        style={{ transform: `rotateY(${rotation}deg) rotateX(-8deg)` }}
+      >
+        {/* Igloo dome - built from CSS */}
+        <div className="igloo-dome">
+          {/* Ice blocks row pattern */}
+          {[0, 1, 2, 3, 4].map((row) => (
+            <div
+              key={row}
+              className="igloo-ring"
+              style={{
+                '--row': row,
+                '--total-rows': 5,
+              } as React.CSSProperties}
+            >
+              {Array.from({ length: Math.max(3, 12 - row * 2) }).map((_, block) => (
+                <div
+                  key={block}
+                  className="ice-block"
+                  style={{
+                    '--block': block,
+                    '--total-blocks': Math.max(3, 12 - row * 2),
+                    animationDelay: `${(row * 0.3 + block * 0.1)}s`,
+                  } as React.CSSProperties}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Entrance arch */}
+        <div className="igloo-entrance" />
+
+        {/* Warm glow from inside */}
+        <div className="igloo-glow" />
+      </div>
+
+      {/* Ground snow */}
+      <div className="snow-ground" />
+    </div>
+  );
+};
+
+/* ───── Aurora Borealis Effect ───── */
+const AuroraBorealis = () => (
+  <div className="aurora-container">
+    <div className="aurora aurora-1" />
+    <div className="aurora aurora-2" />
+    <div className="aurora aurora-3" />
+  </div>
+);
+
+/* ───── Main Home Component ───── */
+export const Home = () => {
+  const [scrollY, setScrollY] = useState(0);
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    const handleMouse = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('mousemove', handleMouse, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouse);
+    };
+  }, []);
+
+  const features = [
+    {
+      icon: Zap,
+      title: 'One-Click SOS',
+      desc: 'Guests trigger emergency alerts instantly. Choose type, add details, and dispatch in seconds with a 10-second cancel window.',
+      gradient: 'from-cyan-400 to-blue-500',
+      glowColor: 'rgba(34, 211, 238, 0.15)',
+    },
+    {
+      icon: Activity,
+      title: 'AI Threat Scoring',
+      desc: 'Google Gemini-powered engine classifies severity and generates immediate action recommendations for each incident.',
+      gradient: 'from-violet-400 to-purple-500',
+      glowColor: 'rgba(167, 139, 250, 0.15)',
+    },
+    {
+      icon: MapPin,
+      title: 'Live Geolocation',
+      desc: 'Dark-themed map shows all active incidents with GPS coordinates. Real-time marker updates as new alerts arrive.',
+      gradient: 'from-emerald-400 to-teal-500',
+      glowColor: 'rgba(52, 211, 153, 0.15)',
+    },
+    {
+      icon: MessageCircle,
+      title: 'Real-Time Chat',
+      desc: 'WebSocket-powered live chat between guests and staff. System-wide broadcast for evacuations and critical alerts.',
+      gradient: 'from-sky-400 to-indigo-500',
+      glowColor: 'rgba(56, 189, 248, 0.15)',
+    },
+    {
+      icon: Bot,
+      title: 'AI Emergency Assistant',
+      desc: 'Gemini chatbot provides instant guidance — fire safety, first aid, earthquake protocols — 24/7.',
+      gradient: 'from-fuchsia-400 to-pink-500',
+      glowColor: 'rgba(232, 121, 249, 0.15)',
+    },
+    {
+      icon: BarChart3,
+      title: 'Analytics & Insights',
+      desc: 'Incident frequency, response times, severity breakdown, and AI-generated security audit reports.',
+      gradient: 'from-amber-400 to-orange-500',
+      glowColor: 'rgba(251, 191, 36, 0.15)',
+    },
+  ];
+
+  const steps = [
+    { step: '01', icon: Flame, title: 'Guest Triggers SOS', desc: 'Select emergency type, add room number and details. One-tap dispatch with 10s cancel window.' },
+    { step: '02', icon: Activity, title: 'AI Scores Threat', desc: 'Gemini analyzes text and sensor data, assigns threat score (0-100), determines severity level.' },
+    { step: '03', icon: Megaphone, title: 'Staff Alerted', desc: 'Real-time WebSocket push to dispatch dashboard. Audio alert, map pin, and AI recommendations.' },
+    { step: '04', icon: Globe, title: 'Coordinated Response', desc: 'Assign staff, track status pipeline, chat with guests, broadcast evacuation notices.' },
+  ];
+
+  return (
+    <div className="igloo-home">
+      <SnowParticles />
+      <AuroraBorealis />
 
       {/* ─── Navbar ─── */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/[0.06] bg-[#0b0f1a]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 lg:px-8 h-16">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+      <nav className={`igloo-nav ${scrollY > 50 ? 'nav-scrolled' : ''}`}>
+        <div className="nav-inner">
+          <div className="nav-brand">
+            <div className="brand-icon">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-white">Rapid Crisis Response</span>
+            <span className="brand-text">Rapid Crisis</span>
+            <div className="brand-badge">
+              <Snowflake className="w-3 h-3" />
+              ARCTIC GRADE
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Link to="/guest" className="hidden sm:flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-white transition-colors px-4 py-2">
-              <Radio className="w-4 h-4" /> Live Demo
+          <div className="nav-links">
+            <Link to="/guest" className="nav-link">
+              <Radio className="w-4 h-4" /> <span>Live Demo</span>
             </Link>
-            <Link to="/login" className="text-sm font-medium text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] px-5 py-2 rounded-xl transition-all hover:border-white/[0.15]">
+            <Link to="/login" className="nav-link-glass">
               Staff Login
             </Link>
-            <Link to="/register" className="text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-xl transition-all shadow-lg shadow-indigo-500/20">
-              Get Started
+            <Link to="/register" className="nav-link-cta">
+              Get Started <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ─── Hero ─── */}
-      <section className="relative pt-32 pb-24 px-6 lg:px-8">
-        {/* Ambient glow */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-indigo-600/[0.08] rounded-full blur-[128px] pointer-events-none" />
-        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-purple-600/[0.06] rounded-full blur-[100px] pointer-events-none" />
+      {/* ─── Hero Section ─── */}
+      <section className="hero-section">
+        {/* Parallax mountain silhouettes */}
+        <div
+          className="hero-mountains"
+          style={{ transform: `translateY(${scrollY * 0.15}px)` }}
+        >
+          <svg viewBox="0 0 1440 400" className="mountain-svg">
+            <defs>
+              <linearGradient id="mountainGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1a2744" />
+                <stop offset="100%" stopColor="#0d1424" />
+              </linearGradient>
+              <linearGradient id="mountainGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#152238" />
+                <stop offset="100%" stopColor="#0b0f1a" />
+              </linearGradient>
+              <linearGradient id="snowCap" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#c8daf0" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#c8daf0" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* Far mountains */}
+            <path d="M0,400 L0,250 Q180,120 360,200 Q500,100 640,180 Q780,60 920,160 Q1060,80 1200,170 Q1340,100 1440,180 L1440,400 Z" fill="url(#mountainGrad1)" opacity="0.6" />
+            {/* Near mountains */}
+            <path d="M0,400 L0,300 Q120,200 280,280 Q400,180 560,260 Q680,150 840,240 Q980,160 1100,230 Q1240,180 1440,250 L1440,400 Z" fill="url(#mountainGrad2)" />
+            {/* Snow caps */}
+            <path d="M480,105 L500,100 L520,108 L510,112 L490,110 Z" fill="url(#snowCap)" />
+            <path d="M770,65 L790,60 L810,70 L800,75 L780,72 Z" fill="url(#snowCap)" />
+            <path d="M1050,85 L1070,80 L1090,88 L1080,92 L1060,90 Z" fill="url(#snowCap)" />
+          </svg>
+        </div>
 
-        <div className="relative max-w-5xl mx-auto text-center">
+        {/* Stars background */}
+        <div className="stars-field">
+          {Array.from({ length: 40 }).map((_, i) => (
+            <div
+              key={i}
+              className="star"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 60}%`,
+                animationDelay: `${Math.random() * 4}s`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+                width: `${1 + Math.random() * 2}px`,
+                height: `${1 + Math.random() * 2}px`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="hero-content">
+          {/* Floating 3D Igloo */}
+          <div
+            className="hero-igloo-wrapper"
+            style={{
+              transform: `translate(${(mousePos.x - 0.5) * 20}px, ${(mousePos.y - 0.5) * 10}px)`,
+            }}
+          >
+            <Igloo3D />
+          </div>
+
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/[0.1] border border-indigo-500/[0.2] text-indigo-300 text-xs font-medium mb-8 animate-float-up">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="hero-badge animate-ice-in" style={{ animationDelay: '0.2s' }}>
+            <span className="badge-dot" />
+            <Snowflake className="w-3.5 h-3.5" />
             AI-Powered Crisis Management for Hospitality
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6 animate-float-up" style={{ animationDelay: '0.1s' }}>
-            Rapid Crisis
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-amber-400">
-              Response Platform
-            </span>
+          <h1 className="hero-title animate-ice-in" style={{ animationDelay: '0.4s' }}>
+            <span className="title-line-1">Rapid Crisis</span>
+            <span className="title-line-2">Response Platform</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-[#94a3b8] max-w-2xl mx-auto leading-relaxed mb-10 animate-float-up" style={{ animationDelay: '0.2s' }}>
+          <p className="hero-subtitle animate-ice-in" style={{ animationDelay: '0.6s' }}>
             Real-time emergency detection, AI-powered threat scoring, and instant
-            coordination between guests, staff, and emergency services —
-            all in sub-second response times.
+            coordination — built for the most extreme environments on Earth.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-float-up" style={{ animationDelay: '0.3s' }}>
-            <Link to="/register" className="group flex items-center gap-2 px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+          <div className="hero-actions animate-ice-in" style={{ animationDelay: '0.8s' }}>
+            <Link to="/register" className="cta-primary">
+              <div className="cta-ice-shine" />
+              <Shield className="w-5 h-5" />
               Deploy Security Hub
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 cta-arrow" />
             </Link>
-            <Link to="/guest" className="flex items-center gap-2 px-8 py-3.5 text-[#94a3b8] hover:text-white font-medium rounded-xl border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] hover:bg-white/[0.05] transition-all">
-              <Radio className="w-4 h-4" /> Try SOS Demo
+            <Link to="/guest" className="cta-secondary">
+              <Radio className="w-4 h-4" />
+              Try SOS Demo
             </Link>
+          </div>
+
+          {/* Floating stat orbs */}
+          <div className="hero-orbs animate-ice-in" style={{ animationDelay: '1s' }}>
+            {[
+              { value: '<50ms', label: 'Latency', icon: Zap },
+              { value: 'Gemini', label: 'AI Engine', icon: Activity },
+              { value: 'AES-256', label: 'Encryption', icon: Shield },
+              { value: 'Live', label: 'WebSocket', icon: Radio },
+            ].map((orb, i) => (
+              <div
+                key={i}
+                className="stat-orb"
+                style={{ animationDelay: `${1 + i * 0.15}s` }}
+              >
+                <orb.icon className="w-4 h-4 orb-icon" />
+                <div className="orb-value">{orb.value}</div>
+                <div className="orb-label">{orb.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── Stats Bar ─── */}
-      <section className="relative border-y border-white/[0.06] bg-white/[0.01]">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.06]">
-          {[
-            { value: '<50ms', label: 'Alert Latency' },
-            { value: 'Gemini AI', label: 'Threat Scoring' },
-            { value: 'AES-256', label: 'Encryption' },
-            { value: 'Real-Time', label: 'WebSocket Sync' },
-          ].map((stat, i) => (
-            <div key={i} className="px-6 py-8 text-center">
-              <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-              <div className="text-xs text-[#64748b] uppercase tracking-wider font-medium">{stat.label}</div>
+      {/* ─── Features Section ─── */}
+      <section className="features-section">
+        <div className="section-header">
+          <div className="section-badge">
+            <Mountain className="w-4 h-4" />
+            CAPABILITIES
+          </div>
+          <h2 className="section-title">Built for Mission-Critical Response</h2>
+          <p className="section-desc">
+            Every feature engineered for zero-latency crisis management across hotels, resorts, and remote stations.
+          </p>
+        </div>
+
+        <div className="features-grid">
+          {features.map((card, i) => (
+            <div
+              key={i}
+              className="feature-card"
+              style={{
+                '--glow-color': card.glowColor,
+                animationDelay: `${i * 0.1}s`,
+              } as React.CSSProperties}
+            >
+              <div className="feature-card-frost" />
+              <div className={`feature-icon bg-gradient-to-br ${card.gradient}`}>
+                <card.icon className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="feature-title">{card.title}</h3>
+              <p className="feature-desc">{card.desc}</p>
+              <div className="feature-link">
+                Explore <ChevronRight className="w-4 h-4" />
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ─── Features Grid ─── */}
-      <section className="py-24 px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Built for Mission-Critical Response</h2>
-            <p className="text-[#94a3b8] max-w-xl mx-auto">Every feature engineered for zero-latency crisis management across hotels, resorts, and hospitality networks.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Feature Cards */}
-            {[
-              {
-                icon: Zap, color: 'indigo',
-                title: 'One-Click SOS',
-                desc: 'Guests trigger emergency alerts instantly. Choose type (fire, medical, security), add details, and dispatch in seconds with a 10-second cancel window.',
-              },
-              {
-                icon: Activity, color: 'rose',
-                title: 'AI Threat Scoring',
-                desc: 'Google Gemini-powered engine classifies severity (Critical/Medium/Low) and generates immediate action recommendations for each incident.',
-              },
-              {
-                icon: MapPin, color: 'cyan',
-                title: 'Live Geolocation Map',
-                desc: 'Leaflet-powered dark map shows all active incidents with GPS coordinates. Real-time marker updates as new alerts arrive.',
-              },
-              {
-                icon: MessageCircle, color: 'emerald',
-                title: 'Real-Time Chat',
-                desc: 'WebSocket-powered live chat between guests and staff. System-wide broadcast alerts for evacuations and critical notices.',
-              },
-              {
-                icon: Bot, color: 'purple',
-                title: 'AI Emergency Assistant',
-                desc: 'Gemini-powered chatbot provides instant guidance — fire safety, first aid, earthquake protocols — available to guests and staff 24/7.',
-              },
-              {
-                icon: BarChart3, color: 'amber',
-                title: 'Analytics & Insights',
-                desc: 'Incident frequency, response times, severity breakdown, and AI-generated recommendations. Visual reports for security audits.',
-              },
-            ].map((card, i) => (
-              <div key={i} className={`group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 hover:border-${card.color}-500/30 hover:bg-${card.color}-500/[0.03] transition-all duration-300`}>
-                <div className={`w-12 h-12 rounded-xl bg-${card.color}-500/10 border border-${card.color}-500/20 text-${card.color}-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
-                  <card.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">{card.title}</h3>
-                <p className="text-[#94a3b8] text-sm leading-relaxed mb-4">{card.desc}</p>
-                <div className={`flex items-center text-${card.color}-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity`}>
-                  Learn more <ChevronRight className="w-4 h-4 ml-1" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ─── How It Works ─── */}
-      <section className="py-24 px-6 lg:px-8 border-t border-white/[0.06] bg-white/[0.01]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-[#94a3b8] max-w-lg mx-auto">From trigger to coordinated response in under one second.</p>
+      <section className="timeline-section">
+        <div className="section-header">
+          <div className="section-badge">
+            <Star className="w-4 h-4" />
+            PROCESS
           </div>
+          <h2 className="section-title">How It Works</h2>
+          <p className="section-desc">From trigger to coordinated response in under one second.</p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { step: '01', icon: <Flame className="w-6 h-6" />, title: 'Guest Triggers SOS', desc: 'Select emergency type, add room number and details. One-tap dispatch with 10s cancel window.' },
-              { step: '02', icon: <Activity className="w-6 h-6" />, title: 'AI Scores Threat', desc: 'Gemini analyzes text and sensor data, assigns threat score (0-100), determines severity level.' },
-              { step: '03', icon: <Megaphone className="w-6 h-6" />, title: 'Staff Alerted', desc: 'Real-time WebSocket push to dispatch dashboard. Audio alert, map pin, and AI recommendations.' },
-              { step: '04', icon: <Globe className="w-6 h-6" />, title: 'Coordinated Response', desc: 'Assign staff, track status pipeline, chat with guests, broadcast evacuation notices.' },
-            ].map((item, i) => (
-              <div key={i} className="relative">
-                <div className="text-6xl font-black text-white/[0.03] absolute -top-4 -left-2">{item.step}</div>
-                <div className="relative pt-6">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                  <p className="text-[#94a3b8] text-sm leading-relaxed">{item.desc}</p>
+        <div className="timeline-track">
+          {/* Connecting ice beam */}
+          <div className="timeline-beam" />
+
+          {steps.map((item, i) => (
+            <div
+              key={i}
+              className="timeline-node"
+              style={{ animationDelay: `${i * 0.2}s` }}
+            >
+              <div className="node-number">{item.step}</div>
+              <div className="node-crystal">
+                <div className="crystal-inner">
+                  <item.icon className="w-6 h-6" />
                 </div>
+                <div className="crystal-ring" />
+                <div className="crystal-ring crystal-ring-2" />
               </div>
-            ))}
-          </div>
+              <h3 className="node-title">{item.title}</h3>
+              <p className="node-desc">{item.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ─── CTA ─── */}
-      <section className="py-24 px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-orange-600/10 rounded-3xl blur-xl" />
-          <div className="relative rounded-3xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-12 md:p-16 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to Protect Your Property?</h2>
-            <p className="text-[#94a3b8] max-w-lg mx-auto mb-8">Deploy an AI-powered crisis response hub in minutes. Real-time alerts, Gemini AI triage, live mapping, and coordinated response — all out of the box.</p>
-            <Link to="/register" className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/25 hover:shadow-indigo-500/40 hover:scale-[1.02]">
-              Create Command Center <ArrowRight className="w-4 h-4" />
+      {/* ─── CTA Section ─── */}
+      <section className="cta-section">
+        <div className="cta-container">
+          <div className="cta-frost-bg" />
+          <div className="cta-aurora" />
+
+          <div className="cta-content">
+            <Snowflake className="w-10 h-10 text-cyan-300 mb-4 cta-snowflake" />
+            <h2 className="cta-title">Ready to Protect Your Property?</h2>
+            <p className="cta-desc">
+              Deploy an AI-powered crisis response system built for the most demanding environments.
+              Real-time alerts, Gemini AI triage, live mapping — all fortified like an arctic shelter.
+            </p>
+            <Link to="/register" className="cta-primary cta-primary-lg">
+              <div className="cta-ice-shine" />
+              Create Command Center
+              <ArrowRight className="w-5 h-5 cta-arrow" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="border-t border-white/[0.06] py-8 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#64748b]" />
-            <span className="text-sm text-[#64748b]">Rapid Crisis Response — Hackathon Demo</span>
+      <footer className="igloo-footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <Shield className="w-4 h-4" />
+            <span>Rapid Crisis Response — Hackathon Demo</span>
           </div>
-          <div className="text-sm text-[#475569]">Django + React + WebSockets + Google Gemini AI</div>
+          <div className="footer-tech">
+            Django + React + WebSockets + Google Gemini AI
+          </div>
         </div>
       </footer>
     </div>

@@ -322,9 +322,11 @@ export const Dashboard = () => {
               ) : (
                 <div className="p-3 space-y-2">
                   {alerts.map((alert) => {
-                    const sevColors = SEVERITY_COLORS[alert.severity] || SEVERITY_COLORS.medium;
-                    const typeColors = TYPE_COLORS[alert.emergency_type] || TYPE_COLORS.other;
-                    const TypeIcon = TYPE_ICONS[alert.emergency_type] || HelpCircle;
+                    const eType = alert.emergency_type || 'other';
+                    const sev = alert.severity || 'medium';
+                    const sevColors = SEVERITY_COLORS[sev] || SEVERITY_COLORS.medium;
+                    const typeColors = TYPE_COLORS[eType] || TYPE_COLORS.other;
+                    const TypeIcon = TYPE_ICONS[eType] || HelpCircle;
                     const isSelected = selectedAlert?.id === alert.id;
                     return (
                       <button
@@ -343,7 +345,7 @@ export const Dashboard = () => {
                             </div>
                             <div>
                               <span className="text-sm font-semibold text-white block">
-                                {alert.emergency_type.replace('_', ' ').replace(/^\w/, (c: string) => c.toUpperCase())} #{alert.id}
+                                {eType.replace('_', ' ').replace(/^\w/, (c: string) => c.toUpperCase())} #{alert.id}
                               </span>
                               {alert.room_number && (
                                 <span className="text-[10px] text-[#475569]">Room {alert.room_number}</span>
@@ -361,7 +363,7 @@ export const Dashboard = () => {
                         <div className="flex items-center justify-between">
                           <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-semibold ${sevColors.bg} ${sevColors.border} ${sevColors.text} border uppercase`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${sevColors.dot}`} />
-                            {alert.severity}
+                            {sev}
                           </div>
                           <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#64748b] uppercase`}>
                             {alert.status}
@@ -409,7 +411,7 @@ export const Dashboard = () => {
                         return (
                           <div key={i} className="flex items-center gap-3">
                             <span className={`text-xs font-medium ${tc.text} w-24 capitalize`}>
-                              {item.emergency_type.replace('_', ' ')}
+                              {(item.emergency_type || 'other').replace('_', ' ')}
                             </span>
                             <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                               <div
@@ -510,8 +512,8 @@ export const Dashboard = () => {
                     position={[a.lat || 28.61, a.lng || 77.21]}
                   >
                     <Popup>
-                      <strong>#{a.id}</strong> — {a.emergency_type.replace('_', ' ')}
-                      <br />Severity: {a.severity} | Score: {a.threat_score}
+                      <strong>#{a.id}</strong> — {(a.emergency_type || 'other').replace('_', ' ')}
+                      <br />Severity: {a.severity || 'unknown'} | Score: {a.threat_score}
                     </Popup>
                   </Marker>
                 ))}
@@ -527,17 +529,18 @@ export const Dashboard = () => {
                       Incident #{selectedAlert.id}
                     </h2>
                     {(() => {
-                      const tc = TYPE_COLORS[selectedAlert.emergency_type] || TYPE_COLORS.other;
-                      const TypeIcon = TYPE_ICONS[selectedAlert.emergency_type] || HelpCircle;
+                      const selType = selectedAlert.emergency_type || 'other';
+                      const tc = TYPE_COLORS[selType] || TYPE_COLORS.other;
+                      const TypeIcon = TYPE_ICONS[selType] || HelpCircle;
                       return (
                         <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${tc.bg} ${tc.border} ${tc.text} border capitalize`}>
                           <TypeIcon className="w-3 h-3" />
-                          {selectedAlert.emergency_type.replace('_', ' ')}
+                          {selType.replace('_', ' ')}
                         </div>
                       );
                     })()}
                     {(() => {
-                      const sc = SEVERITY_COLORS[selectedAlert.severity] || SEVERITY_COLORS.medium;
+                      const sc = SEVERITY_COLORS[selectedAlert.severity || 'medium'] || SEVERITY_COLORS.medium;
                       return (
                         <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${sc.bg} ${sc.border} ${sc.text} border uppercase`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
