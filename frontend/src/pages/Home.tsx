@@ -82,65 +82,7 @@ const SnowParticles = () => {
   );
 };
 
-/* ───── 3D Igloo SVG Component ───── */
-const Igloo3D = () => {
-  const [rotation, setRotation] = useState(0);
 
-  useEffect(() => {
-    let animId: number;
-    const animate = () => {
-      setRotation((r) => (r + 0.15) % 360);
-      animId = requestAnimationFrame(animate);
-    };
-    animId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animId);
-  }, []);
-
-  return (
-    <div className="igloo-scene" style={{ perspective: '1200px' }}>
-      <div
-        className="igloo-model"
-        style={{ transform: `rotateY(${rotation}deg) rotateX(-8deg)` }}
-      >
-        {/* Igloo dome - built from CSS */}
-        <div className="igloo-dome">
-          {/* Ice blocks row pattern */}
-          {[0, 1, 2, 3, 4].map((row) => (
-            <div
-              key={row}
-              className="igloo-ring"
-              style={{
-                '--row': row,
-                '--total-rows': 5,
-              } as React.CSSProperties}
-            >
-              {Array.from({ length: Math.max(3, 12 - row * 2) }).map((_, block) => (
-                <div
-                  key={block}
-                  className="ice-block"
-                  style={{
-                    '--block': block,
-                    '--total-blocks': Math.max(3, 12 - row * 2),
-                    animationDelay: `${(row * 0.3 + block * 0.1)}s`,
-                  } as React.CSSProperties}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-
-        {/* Entrance arch */}
-        <div className="igloo-entrance" />
-
-        {/* Warm glow from inside */}
-        <div className="igloo-glow" />
-      </div>
-
-      {/* Ground snow */}
-      <div className="snow-ground" />
-    </div>
-  );
-};
 
 /* ───── Aurora Borealis Effect ───── */
 const AuroraBorealis = () => (
@@ -271,15 +213,7 @@ export const Home = () => {
         </div>
 
         <div className="hero-content">
-          {/* Floating 3D Igloo */}
-          <div
-            className="hero-igloo-wrapper"
-            style={{
-              transform: `translate(${(mousePos.x - 0.5) * 20}px, ${(mousePos.y - 0.5) * 10}px)`,
-            }}
-          >
-            <Igloo3D />
-          </div>
+
 
           {/* Badge */}
           <div className="hero-badge animate-ice-in" style={{ animationDelay: '0.2s' }}>
@@ -304,9 +238,10 @@ export const Home = () => {
               Deploy Security Hub
               <ArrowRight className="w-4 h-4 cta-arrow" />
             </Link>
-            <Link to="/guest" className="cta-secondary">
+            <Link to="/guest" className="cta-sos">
+              <div className="sos-pulse-ring" />
               <Radio className="w-4 h-4" />
-              Try SOS Demo
+              TEST LIVE SOS
             </Link>
           </div>
 
@@ -334,7 +269,7 @@ export const Home = () => {
 
       {/* ─── Features Section 1: Features Left + Doodle Right (Discord Style) ─── */}
       <section className="features-discord-section">
-        <div className="discord-card" style={{ background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.5), rgba(15, 23, 42, 0.8))' }}>
+        <div className="discord-card" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(30, 58, 138, 0.6))' }}>
           {/* Features list on the left */}
           <div className="features-list-side">
             <div className="section-badge">CAPABILITIES</div>
@@ -372,7 +307,7 @@ export const Home = () => {
 
       {/* ─── Features Section 2: Features Left + Doodle Right (Discord Style) ─── */}
       <section className="features-discord-section">
-        <div className="discord-card" style={{ background: 'linear-gradient(135deg, rgba(23, 37, 84, 0.5), rgba(5, 10, 20, 0.8))' }}>
+        <div className="discord-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(49, 46, 129, 0.6))' }}>
           {/* Features list on the left */}
           <div className="features-list-side">
             <div className="section-badge">COORDINATION</div>
@@ -409,37 +344,39 @@ export const Home = () => {
       </section>
 
       {/* ─── How It Works ─── */}
-      <section className="timeline-section">
-        <div className="section-header">
-          <div className="section-badge">
-            PROCESS
-          </div>
-          <h2 className="section-title">How It Works</h2>
-          <p className="section-desc">From trigger to coordinated response in under one second.</p>
-        </div>
-
-        <div className="timeline-track">
-          {/* Connecting ice beam */}
-          <div className="timeline-beam" />
-
-          {steps.map((item, i) => (
-            <div
-              key={i}
-              className="timeline-node"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            >
-              <div className="node-number">{item.step}</div>
-              <div className="node-crystal">
-                <div className="crystal-inner">
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <div className="crystal-ring" />
-                <div className="crystal-ring crystal-ring-2" />
-              </div>
-              <h3 className="node-title">{item.title}</h3>
-              <p className="node-desc">{item.desc}</p>
+      <section className="features-discord-section">
+        <div className="discord-card discord-card-full" style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(30, 58, 138, 0.55))' }}>
+          <div className="section-header" style={{ marginBottom: '3rem' }}>
+            <div className="section-badge">
+              PROCESS
             </div>
-          ))}
+            <h2 className="section-title">How It Works</h2>
+            <p className="section-desc">From trigger to coordinated response in under one second.</p>
+          </div>
+
+          <div className="timeline-track">
+            {/* Connecting ice beam */}
+            <div className="timeline-beam" />
+
+            {steps.map((item, i) => (
+              <div
+                key={i}
+                className="timeline-node"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              >
+                <div className="node-number">{item.step}</div>
+                <div className="node-crystal">
+                  <div className="crystal-inner">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="crystal-ring" />
+                  <div className="crystal-ring crystal-ring-2" />
+                </div>
+                <h3 className="node-title">{item.title}</h3>
+                <p className="node-desc">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

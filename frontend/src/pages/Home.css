@@ -263,156 +263,52 @@
   z-index: 2;
 }
 
-/* ─── 3D Igloo ─── */
-.hero-igloo-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-  transition: transform 0.3s ease-out;
-}
 
-.igloo-scene {
-  width: 200px;
-  height: 160px;
+
+/* ─── Live SOS Button ─── */
+.cta-sos {
   position: relative;
-  perspective: 1200px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 2.5rem;
+  border-radius: 2rem;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: white;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-decoration: none;
+  overflow: visible;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
 }
 
-.igloo-model {
+.cta-sos:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(135deg, #f87171, #dc2626);
+}
+
+.cta-sos:active {
+  transform: scale(0.95);
+}
+
+.sos-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 100%;
   height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.1s linear;
+  transform: translate(-50%, -50%);
+  border-radius: 2rem;
+  border: 2px solid #ef4444;
+  animation: sos-ring-expand 2s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+  pointer-events: none;
 }
 
-.igloo-dome {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  left: 50%;
-  bottom: 30px;
-  transform: translateX(-50%);
-  border-radius: 50% 50% 10% 10%;
-  background: radial-gradient(ellipse at 35% 30%,
-      rgba(200, 225, 255, 0.35),
-      rgba(140, 180, 220, 0.2) 40%,
-      rgba(80, 120, 170, 0.15) 70%,
-      rgba(40, 70, 120, 0.1));
-  border: 1px solid rgba(200, 225, 255, 0.2);
-  box-shadow:
-    0 0 40px rgba(34, 211, 238, 0.15),
-    0 0 80px rgba(99, 102, 241, 0.08),
-    inset 0 -10px 30px rgba(255, 200, 100, 0.05);
-  backdrop-filter: blur(4px);
-  overflow: hidden;
-}
-
-/* Ice block pattern overlay */
-.igloo-dome::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(0deg,
-      transparent,
-      transparent 14px,
-      rgba(200, 225, 255, 0.08) 14px,
-      rgba(200, 225, 255, 0.08) 15px),
-    repeating-linear-gradient(90deg,
-      transparent,
-      transparent 20px,
-      rgba(200, 225, 255, 0.06) 20px,
-      rgba(200, 225, 255, 0.06) 21px);
-  border-radius: inherit;
-  animation: ice-shimmer 4s ease-in-out infinite alternate;
-}
-
-/* Specular highlight */
-.igloo-dome::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 15px;
-  width: 40px;
-  height: 50px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
-  border-radius: 50%;
-  filter: blur(4px);
-}
-
-@keyframes ice-shimmer {
-  0% {
-    opacity: 0.6;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.igloo-ring,
-.ice-block {
-  display: none;
-  /* Using CSS gradient approach instead */
-}
-
-.igloo-entrance {
-  position: absolute;
-  width: 28px;
-  height: 22px;
-  left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%);
-  background: radial-gradient(ellipse at center bottom,
-      rgba(255, 180, 80, 0.25),
-      rgba(255, 160, 60, 0.1) 60%,
-      transparent);
-  border-radius: 50% 50% 0 0;
-  border: 1px solid rgba(200, 225, 255, 0.1);
-  border-bottom: none;
-}
-
-.igloo-glow {
-  position: absolute;
-  width: 50px;
-  height: 40px;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
-  background: radial-gradient(ellipse,
-      rgba(255, 180, 80, 0.15) 0%,
-      rgba(255, 160, 60, 0.05) 50%,
-      transparent 100%);
-  filter: blur(8px);
-  animation: glow-pulse 3s ease-in-out infinite alternate;
-}
-
-@keyframes glow-pulse {
-  0% {
-    opacity: 0.5;
-    transform: translateX(-50%) scale(0.9);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.1);
-  }
-}
-
-.snow-ground {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 180px;
-  height: 30px;
-  background: radial-gradient(ellipse at center,
-      rgba(200, 225, 255, 0.12),
-      rgba(160, 195, 230, 0.06) 60%,
-      transparent);
-  border-radius: 50%;
-  filter: blur(2px);
+@keyframes sos-ring-expand {
+  0% { width: 100%; height: 100%; opacity: 1; border-width: 3px; }
+  100% { width: 140%; height: 160%; opacity: 0; border-width: 1px; }
 }
 
 /* ─── Hero Badge ─── */
@@ -701,6 +597,10 @@
   align-items: center;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.discord-card-full {
+  display: block;
 }
 
 /* Doodle side inside dark frame */
