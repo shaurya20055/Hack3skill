@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAlertStore } from '../store';
-import { useNavigate, Link } from 'react-router-dom';
-import { Lock, User as UserIcon, Shield } from 'lucide-react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Lock, User as UserIcon, Shield, Users } from 'lucide-react';
 import gsap from 'gsap';
+import type { UserRole } from '../store';
 
 export const Login = () => {
+  const [searchParams] = useSearchParams();
+  const role = (searchParams.get('role') as UserRole) || 'customer';
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -34,8 +38,8 @@ export const Login = () => {
       });
       const data = await res.json();
       if (res.ok && data.access) {
-        login(data.access);
-        navigate('/dashboard');
+        login(data.access, role);
+        navigate(role === 'staff' ? '/admin' : '/customer');
       } else {
         setError(data.detail || 'Invalid credentials. Please try again.');
       }
@@ -46,24 +50,56 @@ export const Login = () => {
     }
   };
 
+  const isStaff = role === 'staff';
+  const accentColor = isStaff ? '#a78bfa' : '#0af0ff';
+  const gradientFrom = isStaff ? '#a78bfa' : '#0af0ff';
+  const gradientTo = isStaff ? '#7c3aed' : '#00b4d8';
+  const RoleIcon = isStaff ? Shield : Users;
+  const roleLabel = isStaff ? 'Staff' : 'Customer';
+
   return (
     <div className="min-h-screen bg-[#060a13] flex items-center justify-center p-6 relative overflow-hidden">
       {/* Ambient glows */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#0af0ff]/[0.03] rounded-full blur-[140px] pointer-events-none" />
+      <div
+        className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none"
+        style={{ background: `${accentColor}08` }}
+      />
       <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#bf5af2]/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
-      <Link to="/" className="fixed top-6 left-6 flex items-center gap-2 text-sm text-[#4a5577] hover:text-white transition-colors z-50 font-mono">
+      <Link to="/login-select" className="fixed top-6 left-6 flex items-center gap-2 text-sm text-[#4a5577] hover:text-white transition-colors z-50 font-mono">
         <Shield className="w-4 h-4" /> CrisisResponse
       </Link>
 
       <div ref={formRef} className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0af0ff] to-[#00b4d8] flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(10,240,255,0.2)]">
-            <Lock className="w-7 h-7 text-[#060a13]" />
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            style={{
+              background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+              boxShadow: `0 0 30px ${accentColor}33`,
+            }}
+          >
+            <RoleIcon className="w-7 h-7 text-[#060a13]" />
           </div>
+
+          {/* Role Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-4 font-mono"
+            style={{
+              background: `${accentColor}10`,
+              border: `1px solid ${accentColor}25`,
+              color: accentColor,
+            }}
+          >
+            <RoleIcon className="w-3.5 h-3.5" />
+            {roleLabel} Login
+          </div>
+
           <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-[#8892b0]">Sign in to access command center</p>
+          <p className="text-[#8892b0]">
+            Sign in to access {isStaff ? 'the command center' : 'your customer portal'}
+          </p>
         </div>
 
         {/* Card */}
@@ -102,16 +138,25 @@ export const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-[#0af0ff] to-[#00b4d8] text-[#060a13] font-bold rounded-xl shadow-[0_0_20px_rgba(10,240,255,0.15)] hover:shadow-[0_0_30px_rgba(10,240,255,0.25)] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm mt-2 btn-command"
+              className="w-full py-3 text-[#060a13] font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm mt-2 btn-command"
+              style={{
+                background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+                boxShadow: `0 0 20px ${accentColor}25`,
+              }}
             >
-              {loading ? 'Authenticating…' : 'Sign In'}
+              {loading ? 'Authenticating…' : `Sign In as ${roleLabel}`}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-[#4a5577] text-sm font-mono">
-          Don't have an account? <Link to="/register" className="text-[#0af0ff] hover:text-[#0af0ff]/80 font-semibold">Create one</Link>
-        </p>
+        <div className="flex items-center justify-between mt-6 px-1">
+          <Link to="/login-select" className="text-sm text-[#4a5577] hover:text-white transition-colors font-mono">
+            ← Switch role
+          </Link>
+          <p className="text-[#4a5577] text-sm font-mono">
+            No account? <Link to="/register" className="text-[#0af0ff] hover:text-[#0af0ff]/80 font-semibold">Create one</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

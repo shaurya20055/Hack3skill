@@ -524,6 +524,363 @@ html, body, #root {
    SELECTION & FOCUS
    ═══════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════
+   LOGIN SELECT PAGE
+   ═══════════════════════════════════════════════════════════ */
+
+.login-select-page {
+  min-height: 100vh;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background glows */
+.ls-bg-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(120px);
+}
+
+.ls-bg-glow-1 {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -100px;
+  background: rgba(167, 139, 250, 0.06);
+  animation: ls-float 8s ease-in-out infinite;
+}
+
+.ls-bg-glow-2 {
+  width: 500px;
+  height: 500px;
+  bottom: -150px;
+  left: -100px;
+  background: rgba(10, 240, 255, 0.05);
+  animation: ls-float 10s ease-in-out infinite reverse;
+}
+
+.ls-bg-glow-3 {
+  width: 400px;
+  height: 400px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(191, 90, 242, 0.03);
+  animation: ls-float 12s ease-in-out infinite;
+}
+
+@keyframes ls-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+/* Grid overlay */
+.ls-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+/* Nav */
+.ls-nav {
+  padding: 1.5rem 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.ls-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4a5577;
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.ls-nav-brand:hover {
+  color: #f0f4ff;
+}
+
+/* Content */
+.ls-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.ls-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.ls-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  background: rgba(10, 240, 255, 0.06);
+  border: 1px solid rgba(10, 240, 255, 0.12);
+  color: #0af0ff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  margin-bottom: 1.5rem;
+}
+
+.ls-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0af0ff;
+  box-shadow: 0 0 8px rgba(10, 240, 255, 0.5);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.ls-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #f0f4ff;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.ls-subtitle {
+  color: #8892b0;
+  font-size: 0.95rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Cards container */
+.ls-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .ls-cards {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
+  .ls-title {
+    font-size: 1.75rem;
+  }
+}
+
+/* Card base */
+.ls-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.5rem 2rem 2rem;
+  border-radius: 1.5rem;
+  background: rgba(15, 22, 40, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  text-decoration: none;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.ls-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Card glow on hover */
+.ls-card-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 1.5rem;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.ls-card:hover .ls-card-glow {
+  opacity: 1;
+}
+
+.ls-card-staff .ls-card-glow {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(124, 58, 237, 0.1));
+  box-shadow: 0 0 60px rgba(167, 139, 250, 0.15), inset 0 0 60px rgba(167, 139, 250, 0.05);
+}
+
+.ls-card-customer .ls-card-glow {
+  background: linear-gradient(135deg, rgba(10, 240, 255, 0.15), rgba(0, 180, 216, 0.1));
+  box-shadow: 0 0 60px rgba(10, 240, 255, 0.15), inset 0 0 60px rgba(10, 240, 255, 0.05);
+}
+
+/* Card shine effect */
+.ls-card-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.ls-card:hover .ls-card-shine {
+  left: 100%;
+}
+
+/* Icon wrap */
+.ls-card-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  transition: transform 0.4s, box-shadow 0.4s;
+}
+
+.ls-card:hover .ls-card-icon-wrap {
+  transform: scale(1.1);
+}
+
+.ls-icon-staff {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.25);
+  color: white;
+}
+
+.ls-card:hover .ls-icon-staff {
+  box-shadow: 0 0 50px rgba(167, 139, 250, 0.4);
+}
+
+.ls-icon-customer {
+  background: linear-gradient(135deg, #0af0ff, #00b4d8);
+  box-shadow: 0 0 30px rgba(10, 240, 255, 0.25);
+  color: #060a13;
+}
+
+.ls-card:hover .ls-icon-customer {
+  box-shadow: 0 0 50px rgba(10, 240, 255, 0.4);
+}
+
+/* Card text */
+.ls-card-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f0f4ff;
+  margin-bottom: 0.75rem;
+}
+
+.ls-card-desc {
+  font-size: 0.8rem;
+  color: #8892b0;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  max-width: 280px;
+}
+
+/* Card features */
+.ls-card-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.ls-card-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.7rem;
+  color: #8892b0;
+  font-family: var(--font-mono);
+  transition: all 0.3s;
+}
+
+.ls-card:hover .ls-card-feature {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ls-card-staff .ls-card-feature svg {
+  color: #a78bfa;
+}
+
+.ls-card-customer .ls-card-feature svg {
+  color: #0af0ff;
+}
+
+/* Card CTA */
+.ls-card-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: gap 0.3s;
+}
+
+.ls-card-staff .ls-card-cta {
+  color: #a78bfa;
+}
+
+.ls-card-customer .ls-card-cta {
+  color: #0af0ff;
+}
+
+.ls-card:hover .ls-card-cta {
+  gap: 0.75rem;
+}
+
+/* Footer text */
+.ls-footer-text {
+  margin-top: 2.5rem;
+  color: #4a5577;
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+}
+
+.ls-register-link {
+  color: #0af0ff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.ls-register-link:hover {
+  color: rgba(10, 240, 255, 0.8);
+}
+
 ::selection {
   background: rgba(10, 240, 255, 0.2);
   color: var(--color-text-primary);

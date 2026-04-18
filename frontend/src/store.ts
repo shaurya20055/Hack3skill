@@ -34,6 +34,8 @@ export interface SystemBroadcast {
   timestamp: string;
 }
 
+export type UserRole = 'staff' | 'customer' | null;
+
 interface AlertStore {
   alerts: AlertData[];
   addAlert: (alert: AlertData) => void;
@@ -47,7 +49,8 @@ interface AlertStore {
   clearBroadcast: (index: number) => void;
   token: string | null;
   isAuthenticated: boolean;
-  login: (token: string) => void;
+  userRole: UserRole;
+  login: (token: string, role: UserRole) => void;
   logout: () => void;
 }
 
@@ -57,14 +60,17 @@ export const useAlertStore = create<AlertStore>((set) => ({
   broadcasts: [],
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
+  userRole: (localStorage.getItem('userRole') as UserRole) || null,
 
-  login: (token) => {
+  login: (token, role) => {
     localStorage.setItem('token', token);
-    set({ token, isAuthenticated: true });
+    if (role) localStorage.setItem('userRole', role);
+    set({ token, isAuthenticated: true, userRole: role });
   },
   logout: () => {
     localStorage.removeItem('token');
-    set({ token: null, isAuthenticated: false, alerts: [], chatMessages: [] });
+    localStorage.removeItem('userRole');
+    set({ token: null, isAuthenticated: false, userRole: null, alerts: [], chatMessages: [] });
   },
 
   addAlert: (alert) =>

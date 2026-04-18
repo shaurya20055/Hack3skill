@@ -38,7 +38,7 @@ export const Register = () => {
       const data = await res.json();
       if (res.ok) {
         setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
+        setTimeout(() => navigate('/login-select'), 2000);
       } else {
         const firstError = Object.values(data)?.[0];
         setError(Array.isArray(firstError) ? (firstError as string[])[0] : 'Registration failed.');
@@ -144,7 +144,7 @@ export const Register = () => {
         </div>
 
         <p className="mt-6 text-center text-[#4a5577] text-sm font-mono">
-          Already have an account? <Link to="/login" className="text-[#bf5af2] hover:text-[#bf5af2]/80 font-semibold">Sign in</Link>
+          Already have an account? <Link to="/login-select" className="text-[#bf5af2] hover:text-[#bf5af2]/80 font-semibold">Sign in</Link>
         </p>
       </div>
     </div>

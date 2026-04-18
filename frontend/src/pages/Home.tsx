@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import './Home.css';
 import {
   Shield, Zap, MapPin, Activity, Radio, ArrowRight,
-  Flame, MessageCircle, BarChart3, Bot, Megaphone, Globe
+  Flame, MessageCircle, BarChart3, Bot, Megaphone, Globe,
+  Star, Phone, Navigation, FileText, Users, HeartPulse
 } from 'lucide-react';
 
 /* ───── Snowflake Particle Component ───── */
@@ -151,10 +152,10 @@ export const Home = () => {
             <Link to="/guest" className="nav-link">
               <Radio className="w-4 h-4" /> <span>Live Demo</span>
             </Link>
-            <Link to="/login" className="nav-link-glass">
-              Staff Login
+            <Link to="/login-select" className="nav-link-glass">
+              Login
             </Link>
-            <Link to="/register" className="nav-link-cta">
+            <Link to="/login-select" className="nav-link-cta">
               Get Started <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -232,10 +233,10 @@ export const Home = () => {
           </p>
 
           <div className="hero-actions animate-ice-in" style={{ animationDelay: '0.8s' }}>
-            <Link to="/register" className="cta-primary">
+            <Link to="/login-select" className="cta-primary">
               <div className="cta-ice-shine" />
               <Shield className="w-5 h-5" />
-              Deploy Security Hub
+              Access Portal
               <ArrowRight className="w-4 h-4 cta-arrow" />
             </Link>
             <Link to="/guest" className="cta-sos">
@@ -380,6 +381,72 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* ─── Review Section ─── */}
+      <section className="features-discord-section">
+        <div className="discord-card discord-card-full" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.4))' }}>
+          <div className="section-header" style={{ marginBottom: '2.5rem' }}>
+            <div className="section-badge">TESTIMONIALS</div>
+            <h2 className="section-title">What People Say</h2>
+            <p className="section-desc">Trusted by hospitality professionals worldwide.</p>
+          </div>
+
+          <div className="timeline-track" style={{ gap: '1.5rem' }}>
+            {[
+              { name: 'Sarah M.', role: 'Hotel Manager', review: 'Response time dropped by 70%. The AI scoring is incredibly accurate for threat assessment.', stars: 5 },
+              { name: 'Raj P.', role: 'Security Director', review: 'The real-time dispatch and WebSocket alerts transformed how our team coordinates during emergencies.', stars: 5 },
+              { name: 'Emily K.', role: 'Resort Owner', review: 'Heat maps and severity analytics give us insights we never had before. Game-changer for safety.', stars: 4 },
+            ].map((review, i) => (
+              <div key={i} className="timeline-node" style={{ animationDelay: `${i * 0.2}s`, textAlign: 'center' }}>
+                <div className="node-crystal" style={{ marginBottom: '1rem' }}>
+                  <div className="crystal-inner">
+                    <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{review.name[0]}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', marginBottom: '0.5rem' }}>
+                  {Array.from({ length: review.stars }).map((_, j) => (
+                    <Star key={j} className="w-4 h-4" style={{ color: '#fbbf24', fill: '#fbbf24' }} />
+                  ))}
+                </div>
+                <p className="node-desc" style={{ fontStyle: 'italic', marginBottom: '0.75rem' }}>"{review.review}"</p>
+                <h3 className="node-title" style={{ fontSize: '0.9rem' }}>{review.name}</h3>
+                <span style={{ fontSize: '0.7rem', color: '#8892b0' }}>{review.role}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Help Section ─── */}
+      <section className="features-discord-section">
+        <div className="discord-card discord-card-full" style={{ background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.4))' }}>
+          <div className="section-header" style={{ marginBottom: '2.5rem' }}>
+            <div className="section-badge">SUPPORT</div>
+            <h2 className="section-title">Need Help?</h2>
+            <p className="section-desc">Multiple ways to reach our emergency support team, 24/7.</p>
+          </div>
+
+          <div className="timeline-track" style={{ gap: '1.5rem' }}>
+            {[
+              { icon: Phone, title: 'Emergency Hotline', desc: 'Call our 24/7 hotline for immediate human assistance: 1-800-CRISIS', color: '#ff2d55' },
+              { icon: Navigation, title: 'GPS Location', desc: 'Share your live GPS coordinates automatically when triggering SOS.', color: '#0af0ff' },
+              { icon: FileText, title: 'Textual Help', desc: 'Detailed safety guides, fire protocols, medical first-aid instructions.', color: '#34d399' },
+              { icon: HeartPulse, title: 'Medical Support', desc: 'Connect with on-call medical professionals for immediate guidance.', color: '#e879f9' },
+            ].map((item, i) => (
+              <div key={i} className="timeline-node" style={{ animationDelay: `${i * 0.2}s` }}>
+                <div className="node-crystal">
+                  <div className="crystal-inner" style={{ color: item.color }}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="crystal-ring" />
+                </div>
+                <h3 className="node-title">{item.title}</h3>
+                <p className="node-desc">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── CTA Section ─── */}
       <section className="cta-section">
         <div className="cta-container">
@@ -392,9 +459,9 @@ export const Home = () => {
               Deploy an AI-powered crisis response system built for the most demanding environments.
               Real-time alerts, Gemini AI triage, live mapping — all fortified like an arctic shelter.
             </p>
-            <Link to="/register" className="cta-primary cta-primary-lg">
+            <Link to="/login-select" className="cta-primary cta-primary-lg">
               <div className="cta-ice-shine" />
-              Create Command Center
+              Get Started Now
               <ArrowRight className="w-5 h-5 cta-arrow" />
             </Link>
           </div>
