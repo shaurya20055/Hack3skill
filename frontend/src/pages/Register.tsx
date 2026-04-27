@@ -64,8 +64,8 @@ export const Register = () => {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#bf5af2] to-[#9745c7] flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(191,90,242,0.2)]">
             <UserPlus className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-[#8892b0]">Set up your command center access</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Create Customer Account</h1>
+          <p className="text-[#8892b0]">Register to report emergencies and track incidents</p>
         </div>
 
         <div className="glass-card p-8">

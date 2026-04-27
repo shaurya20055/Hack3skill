@@ -3,7 +3,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import gsap from 'gsap';
 import {
   ShieldAlert, XCircle, CheckCircle2, Shield, MapPin,
-  Flame, HeartPulse, ShieldCheck, AlertTriangle, HelpCircle, Send
+  Flame, HeartPulse, ShieldCheck, Droplets, ClipboardList, Send
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AIChat } from '../components/AIChat';
@@ -12,10 +12,10 @@ const WS_URL = 'ws://127.0.0.1:8000/ws/alerts/';
 
 const EMERGENCY_TYPES = [
   { id: 'fire', label: 'Fire', icon: Flame, color: 'from-[#ff2d55] to-[#d91e48]', glow: 'shadow-[0_0_20px_rgba(255,45,85,0.3)]', inactive: 'bg-[#ff2d55]/[0.08] border-[#ff2d55]/15 text-[#ff2d55]' },
+  { id: 'flood', label: 'Flood', icon: Droplets, color: 'from-[#0ea5e9] to-[#0284c7]', glow: 'shadow-[0_0_20px_rgba(14,165,233,0.3)]', inactive: 'bg-[#0ea5e9]/[0.08] border-[#0ea5e9]/15 text-[#0ea5e9]' },
   { id: 'medical', label: 'Medical', icon: HeartPulse, color: 'from-[#ff6b9d] to-[#ff2d7a]', glow: 'shadow-[0_0_20px_rgba(255,107,157,0.3)]', inactive: 'bg-[#ff6b9d]/[0.08] border-[#ff6b9d]/15 text-[#ff6b9d]' },
   { id: 'security', label: 'Security', icon: ShieldCheck, color: 'from-[#ff9500] to-[#e08600]', glow: 'shadow-[0_0_20px_rgba(255,149,0,0.3)]', inactive: 'bg-[#ff9500]/[0.08] border-[#ff9500]/15 text-[#ff9500]' },
-  { id: 'natural_disaster', label: 'Disaster', icon: AlertTriangle, color: 'from-[#bf5af2] to-[#9745c7]', glow: 'shadow-[0_0_20px_rgba(191,90,242,0.3)]', inactive: 'bg-[#bf5af2]/[0.08] border-[#bf5af2]/15 text-[#bf5af2]' },
-  { id: 'other', label: 'Other', icon: HelpCircle, color: 'from-[#8892b0] to-[#6a7394]', glow: 'shadow-[0_0_15px_rgba(136,146,176,0.2)]', inactive: 'bg-[#8892b0]/[0.08] border-[#8892b0]/15 text-[#8892b0]' },
+  { id: 'routine', label: 'Routine', icon: ClipboardList, color: 'from-[#8892b0] to-[#6a7394]', glow: 'shadow-[0_0_15px_rgba(136,146,176,0.2)]', inactive: 'bg-[#8892b0]/[0.08] border-[#8892b0]/15 text-[#8892b0]' },
 ];
 
 export const Guest = () => {
@@ -23,7 +23,7 @@ export const Guest = () => {
   const [countdown, setCountdown] = useState(10);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [impactDetected, setImpactDetected] = useState(false);
-  const [emergencyType, setEmergencyType] = useState('other');
+  const [emergencyType, setEmergencyType] = useState('routine');
   const [details, setDetails] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
   const [systemBroadcast, setSystemBroadcast] = useState<string | null>(null);
@@ -111,7 +111,7 @@ export const Guest = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setStatus('idle');
     setImpactDetected(false);
-    setEmergencyType('other');
+    setEmergencyType('routine');
     setDetails('');
     setRoomNumber('');
   };
@@ -278,7 +278,7 @@ export const Guest = () => {
                 <span className="capitalize px-2 py-1 rounded-lg bg-white/[0.03] border border-white/[0.04]">{emergencyType.replace('_', ' ')}</span>
                 {roomNumber && <span className="px-2 py-1 rounded-lg bg-white/[0.03] border border-white/[0.04]">Room {roomNumber}</span>}
               </div>
-              <button onClick={() => { setStatus('idle'); setEmergencyType('other'); setDetails(''); setRoomNumber(''); }}
+              <button onClick={() => { setStatus('idle'); setEmergencyType('routine'); setDetails(''); setRoomNumber(''); }}
                 className="px-6 py-2.5 text-sm text-[#8892b0] hover:text-white glass-card rounded-xl transition-all cursor-pointer font-mono">
                 Reset
               </button>

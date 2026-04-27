@@ -1,24 +1,24 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import {
-  Flame, HeartPulse, ShieldCheck, AlertTriangle, HelpCircle, Clock, MapPin
+  Flame, HeartPulse, ShieldCheck, Droplets, ClipboardList, Clock, MapPin
 } from 'lucide-react';
 import type { AlertData } from '../store';
 
 const TYPE_ICONS: Record<string, any> = {
   fire: Flame,
+  flood: Droplets,
   medical: HeartPulse,
   security: ShieldCheck,
-  natural_disaster: AlertTriangle,
-  other: HelpCircle,
+  routine: ClipboardList,
 };
 
 const TYPE_LABELS: Record<string, string> = {
   fire: 'Fire',
+  flood: 'Flood',
   medical: 'Medical',
   security: 'Security',
-  natural_disaster: 'Disaster',
-  other: 'Other',
+  routine: 'Routine',
 };
 
 const SEVERITY_CONFIG: Record<string, { glow: string; dot: string; badge: string; cardClass: string }> = {
@@ -59,7 +59,7 @@ interface AlertCardProps {
 export const AlertCard = ({ alert, isSelected, onClick, index }: AlertCardProps) => {
   const cardRef = useRef<HTMLButtonElement>(null);
   const severity = SEVERITY_CONFIG[alert.severity] || SEVERITY_CONFIG.medium;
-  const TypeIcon = TYPE_ICONS[alert.emergency_type] || HelpCircle;
+  const TypeIcon = TYPE_ICONS[alert.emergency_type] || ClipboardList;
 
   useEffect(() => {
     if (cardRef.current) {

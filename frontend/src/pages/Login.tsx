@@ -153,9 +153,16 @@ export const Login = () => {
           <Link to="/login-select" className="text-sm text-[#4a5577] hover:text-white transition-colors font-mono">
             ← Switch role
           </Link>
-          <p className="text-[#4a5577] text-sm font-mono">
-            No account? <Link to="/register" className="text-[#0af0ff] hover:text-[#0af0ff]/80 font-semibold">Create one</Link>
-          </p>
+          {!isStaff && (
+            <p className="text-[#4a5577] text-sm font-mono">
+              No account? <Link to="/register" className="text-[#0af0ff] hover:text-[#0af0ff]/80 font-semibold">Create one</Link>
+            </p>
+          )}
+          {isStaff && (
+            <p className="text-[#4a5577] text-xs font-mono">
+              Staff accounts are managed by admins
+            </p>
+          )}
         </div>
       </div>
     </div>

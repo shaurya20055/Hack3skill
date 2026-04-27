@@ -17,6 +17,7 @@ export interface AlertData {
   assigned_staff?: number | null;
   assigned_staff_details?: { id: number; username: string; first_name: string; last_name: string } | null;
   response_time?: number | null;
+  model_confidence?: number | null;
 }
 
 export interface ChatMsg {

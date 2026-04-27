@@ -62,10 +62,10 @@ export const MapView = ({ alerts, selectedAlert, onAlertSelect }: MapViewProps) 
 
   const TYPE_LABELS: Record<string, string> = {
     fire: '🔥 Fire',
+    flood: '🌊 Flood',
     medical: '🏥 Medical',
     security: '🔒 Security',
-    natural_disaster: '🌍 Disaster',
-    other: '❓ Other',
+    routine: '📋 Routine',
   };
 
   return (

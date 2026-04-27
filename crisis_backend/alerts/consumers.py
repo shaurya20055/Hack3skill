@@ -176,10 +176,14 @@ class AlertConsumer(AsyncWebsocketConsumer):
     # --- DB operations ---
     @database_sync_to_async
     def create_alert(self, coordinates, ai_result, emergency_type, details, room_number):
+        # Use the model's predicted type instead of the user-supplied type
+        classified_type = ai_result.get('predicted_type', emergency_type)
+        model_confidence = ai_result.get('model_confidence', 0.0)
+
         alert = Alert.objects.create(
             lat=coordinates.get('lat'),
             lng=coordinates.get('lng'),
-            emergency_type=emergency_type,
+            emergency_type=classified_type,
             details=details,
             room_number=room_number,
             threat_score=ai_result['threat_score'],
@@ -187,6 +191,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
             priority_score=ai_result['threat_score'],
             ai_suggestion=ai_result.get('ai_suggestion', ''),
             ai_summary=ai_result.get('ai_summary', ''),
+            model_confidence=model_confidence,
             trigger_type='sos_button',
         )
         return {
@@ -201,6 +206,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
             'status': alert.status,
             'ai_suggestion': alert.ai_suggestion,
             'ai_summary': alert.ai_summary,
+            'model_confidence': alert.model_confidence,
             'timestamp': alert.timestamp.isoformat(),
         }
 

@@ -152,7 +152,8 @@ export const LoginSelect = () => {
         </div>
 
         <p className="ls-footer-text">
-          Don't have an account? <Link to="/register" className="ls-register-link">Create one</Link>
+          Need a customer account? <Link to="/register" className="ls-register-link">Register here</Link>
+          <span style={{ display: 'block', marginTop: '4px', fontSize: '11px', opacity: 0.5 }}>Staff accounts are managed by admins</span>
         </p>
       </div>
     </div>

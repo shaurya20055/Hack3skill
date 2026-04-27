@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import {
   X, MapPin, Clock, Activity, Check, Flame, HeartPulse, ShieldCheck,
-  AlertTriangle, HelpCircle, User
+  Droplets, ClipboardList, User
 } from 'lucide-react';
 import type { AlertData } from '../store';
 import { StatusPipeline } from './StatusPipeline';
@@ -11,13 +11,13 @@ import { ChatBox } from './ChatBox';
 import type { ChatMsg } from '../store';
 
 const TYPE_ICONS: Record<string, any> = {
-  fire: Flame, medical: HeartPulse, security: ShieldCheck,
-  natural_disaster: AlertTriangle, other: HelpCircle,
+  fire: Flame, flood: Droplets, medical: HeartPulse, security: ShieldCheck,
+  routine: ClipboardList,
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  fire: 'Fire Emergency', medical: 'Medical Emergency', security: 'Security Threat',
-  natural_disaster: 'Natural Disaster', other: 'Other Incident',
+  fire: 'Fire Emergency', flood: 'Flood Emergency', medical: 'Medical Emergency', security: 'Security Threat',
+  routine: 'Routine Incident',
 };
 
 interface IncidentDetailProps {
@@ -37,7 +37,7 @@ export const IncidentDetail = ({
   staffList, chatMessages, chatInput, onChatInputChange, onSendChat
 }: IncidentDetailProps) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const TypeIcon = TYPE_ICONS[alert.emergency_type] || HelpCircle;
+  const TypeIcon = TYPE_ICONS[alert.emergency_type] || ClipboardList;
 
   useEffect(() => {
     if (panelRef.current) {

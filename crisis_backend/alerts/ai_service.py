@@ -1,13 +1,17 @@
 """
-AI Service module integrating with Google Gemini API for:
-- Threat classification and severity scoring
-- Real-time crisis guidance
-- Incident summarization
-- Smart detection from text input
+AI Service module for crisis response platform.
+
+Classification is handled by the local dual-head DistilBERT model.
+Google Gemini API is used only for:
+- Real-time crisis guidance (chat)
+- Incident summarization and suggestions
+- Analytics insights
 """
 import os
 import json
 import re
+
+from .model_service import classify_crisis
 
 # Try to load environment variables
 try:
@@ -35,118 +39,110 @@ def _get_client():
 
 def classify_threat(emergency_type: str, details: str, sensor_data: dict = None) -> dict:
     """
-    Use Gemini to classify threat severity and generate suggestions.
-    Falls back to rule-based scoring if Gemini is unavailable.
-    """
-    client = _get_client()
+    Classify threat using the local dual-head BERT model.
 
+    The model determines:
+    - Crisis type (fire/flood/medical/routine/security)
+    - Severity score (0-100)
+
+    Gemini is optionally used for generating AI suggestion and summary text.
+    """
+    # ── Primary: Model-based classification ──
+    # Use details text if available, otherwise use emergency_type as input
+    classify_text = details.strip() if details and details.strip() else emergency_type
+    model_result = classify_crisis(classify_text)
+
+    predicted_type = model_result['predicted_type']
+    confidence = model_result['confidence']
+    severity_score = model_result['severity_score']
+
+    # ── Adjust severity based on type and confidence ──
+    # The model's severity head outputs sigmoid(raw) * 100, where routine items
+    # land around ~50 (sigmoid(0) = 0.5). We adjust based on the predicted type:
+    if predicted_type == 'routine':
+        # Routine issues should be low severity — scale down
+        severity_score = min(severity_score * 0.4, 30)
+    else:
+        # Real emergencies — boost if model is confident
+        if confidence > 0.8:
+            severity_score = max(severity_score, 75)  # At least 75 for confident emergencies
+        elif confidence > 0.5:
+            severity_score = max(severity_score, 55)
+
+    # Boost severity if sensor data indicates impact
+    if sensor_data and sensor_data.get('impact_detected'):
+        severity_score = min(100, severity_score + 15)
+
+    # Determine threat score (0-100) from model severity
+    threat_score = int(round(severity_score))
+
+    # Determine severity label
+    if threat_score >= 70:
+        severity = 'critical'
+    elif threat_score >= 40:
+        severity = 'medium'
+    else:
+        severity = 'low'
+
+    # ── Optional: Gemini for AI suggestion/summary text ──
+    ai_suggestion = ''
+    ai_summary = ''
+
+    client = _get_client()
     if client:
         try:
             prompt = f"""You are an emergency response AI for a hotel crisis management system.
-Analyze the following emergency report and respond ONLY with a valid JSON object.
+An emergency has been classified by our ML model as:
+- Type: {predicted_type}
+- Severity: {severity} (score: {threat_score}/100)
+- Confidence: {confidence:.1%}
+- Details: {details}
+- Sensor Data: {json.dumps(sensor_data or {})}
 
-Emergency Type: {emergency_type}
-Details: {details}
-Sensor Data: {json.dumps(sensor_data or {})}
-
-Respond with this exact JSON structure:
+Provide a brief JSON response with ONLY:
 {{
-    "threat_score": <integer 0-100>,
-    "severity": "<low|medium|critical>",
     "ai_suggestion": "<immediate action recommendation in 1-2 sentences>",
     "ai_summary": "<brief incident summary in 1 sentence>"
-}}
-
-Rules:
-- Fire/security threats with panic keywords = critical (80-100)
-- Medical emergencies = medium-high (60-90)
-- Vague/minor reports = low (20-50)
-- Impact detected in sensors = boost score by 20
-"""
+}}"""
             response = client.models.generate_content(
                 model='gemini-2.0-flash',
                 contents=prompt
             )
             text = response.text.strip()
-            # Extract JSON from response
             json_match = re.search(r'\{[^{}]*\}', text, re.DOTALL)
             if json_match:
                 result = json.loads(json_match.group())
-                return {
-                    'threat_score': max(0, min(100, int(result.get('threat_score', 50)))),
-                    'severity': result.get('severity', 'medium'),
-                    'ai_suggestion': result.get('ai_suggestion', ''),
-                    'ai_summary': result.get('ai_summary', ''),
-                }
+                ai_suggestion = result.get('ai_suggestion', '')
+                ai_summary = result.get('ai_summary', '')
         except Exception as e:
-            print(f"Gemini classify_threat error: {e}")
+            print(f"Gemini suggestion error: {e}")
 
-    # Fallback: rule-based scoring
-    return _fallback_classify(emergency_type, details, sensor_data)
+    # Fallback suggestions if Gemini unavailable
+    if not ai_suggestion:
+        ai_suggestion = _get_suggestion(predicted_type, severity)
+    if not ai_summary:
+        ai_summary = f'{predicted_type.title()} incident detected — severity {severity} (confidence: {confidence:.0%}).'
 
-
-def _fallback_classify(emergency_type: str, details: str, sensor_data: dict = None) -> dict:
-    """Rule-based fallback when Gemini is unavailable."""
-    import random
-
-    details_lower = (details or '').lower()
-    score = 40
-
-    # Type-based scoring
-    type_scores = {
-        'fire': 80,
-        'security': 75,
-        'medical': 65,
-        'natural_disaster': 85,
-        'other': 40,
+    return {
+        'threat_score': threat_score,
+        'severity': severity,
+        'ai_suggestion': ai_suggestion,
+        'ai_summary': ai_summary,
+        'predicted_type': predicted_type,
+        'model_confidence': confidence,
     }
-    score = type_scores.get(emergency_type, 40)
 
-    # Keyword boosting
-    panic_keywords = ['help', 'trapped', 'shooting', 'fire', 'smoke', 'blood',
-                      'unconscious', 'attack', 'bomb', 'weapon', 'gun', 'dying',
-                      'earthquake', 'flood', 'collapse']
-    keyword_hits = sum(1 for kw in panic_keywords if kw in details_lower)
-    score = min(100, score + keyword_hits * 8)
 
-    # Sensor data boost
-    if sensor_data and sensor_data.get('impact_detected'):
-        score = min(100, score + 15)
-
-    # Add randomness
-    score = min(100, max(10, score + random.randint(-5, 10)))
-
-    # Determine severity
-    if score >= 75:
-        severity = 'critical'
-    elif score >= 45:
-        severity = 'medium'
-    else:
-        severity = 'low'
-
-    # Generate suggestion based on type
+def _get_suggestion(emergency_type: str, severity: str) -> str:
+    """Generate a deterministic action suggestion based on type."""
     suggestions = {
         'fire': 'Evacuate the affected floor immediately. Alert fire department. Activate fire suppression systems.',
         'medical': 'Dispatch on-site medical team. Prepare first-aid supplies. Call emergency medical services if needed.',
         'security': 'Lock down the affected area. Alert security team. Contact local law enforcement if threat is active.',
-        'natural_disaster': 'Initiate evacuation protocol. Guide guests to designated safe zones. Monitor for aftershocks.',
-        'other': 'Assess the situation on-site. Send nearest available staff to the reported location.',
+        'flood': 'Initiate flood response protocol. Move guests to higher floors. Shut off water mains if applicable.',
+        'routine': 'Assess the situation on-site. Send nearest available staff to the reported location.',
     }
-
-    summaries = {
-        'fire': f'Fire emergency reported. Threat level: {severity}.',
-        'medical': f'Medical emergency reported. Threat level: {severity}.',
-        'security': f'Security threat reported. Threat level: {severity}.',
-        'natural_disaster': f'Natural disaster alert. Threat level: {severity}.',
-        'other': f'Incident reported. Threat level: {severity}.',
-    }
-
-    return {
-        'threat_score': score,
-        'severity': severity,
-        'ai_suggestion': suggestions.get(emergency_type, suggestions['other']),
-        'ai_summary': summaries.get(emergency_type, summaries['other']),
-    }
+    return suggestions.get(emergency_type, suggestions['routine'])
 
 
 def chat_with_gemini(user_message: str, context: str = '') -> str:
@@ -203,6 +199,12 @@ def _fallback_chat(user_message: str) -> str:
                 "3) If in bed, stay there and protect your head with a pillow. "
                 "4) After shaking stops, evacuate using stairs only. Watch for aftershocks.")
 
+    if any(w in msg for w in ['flood', 'water', 'flooding']):
+        return ("🌊 **Flood Response:** 1) Move to higher ground immediately. "
+                "2) Avoid walking through moving water — 6 inches can knock you down. "
+                "3) Stay away from electrical equipment and outlets. "
+                "4) Wait for staff instructions before returning to lower floors.")
+
     if any(w in msg for w in ['security', 'attack', 'weapon', 'gun', 'threat', 'suspicious']):
         return ("🔒 **Security Threat Protocol:** 1) If safe, LOCK your door and turn off lights. "
                 "2) Move away from the door and windows. Stay silent. "
@@ -219,7 +221,7 @@ def _fallback_chat(user_message: str) -> str:
             "• 🔥 Fire safety and evacuation\n"
             "• 🏥 First aid and medical guidance\n"
             "• 🔒 Security threat protocols\n"
-            "• 🌍 Natural disaster response\n"
+            "• 🌊 Flood response\n"
             "• 🚪 Evacuation procedures\n\n"
             "What type of emergency do you need help with?")
 
@@ -262,10 +264,10 @@ Respond with ONLY a valid JSON object:
     # Fallback analytics
     type_counts = {}
     for inc in incident_data:
-        t = inc.get('emergency_type', 'other')
+        t = inc.get('emergency_type', 'routine')
         type_counts[t] = type_counts.get(t, 0) + 1
 
-    most_common = max(type_counts, key=type_counts.get) if type_counts else 'other'
+    most_common = max(type_counts, key=type_counts.get) if type_counts else 'routine'
 
     return {
         'summary': f'Analyzed {len(incident_data)} incidents. Most frequent type: {most_common}.',

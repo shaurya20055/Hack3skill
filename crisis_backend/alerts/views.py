@@ -13,6 +13,7 @@ from .serializers import (
     ChatMessageSerializer, StaffSerializer
 )
 from .ai_service import chat_with_gemini, generate_analytics_insights
+from .model_service import classify_crisis
 import json
 from datetime import timedelta
 
@@ -32,6 +33,24 @@ class AlertViewSet(viewsets.ModelViewSet):
     queryset = Alert.objects.all().order_by('-timestamp')
     serializer_class = AlertSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """Run ML classification on every alert created via REST API."""
+        alert = serializer.save()
+
+        # Classify using the ML model
+        classify_text = alert.details.strip() if alert.details else alert.emergency_type
+        if classify_text:
+            from .ai_service import classify_threat
+            result = classify_threat(alert.emergency_type, classify_text)
+            alert.emergency_type = result.get('predicted_type', alert.emergency_type)
+            alert.threat_score = result.get('threat_score', 0)
+            alert.severity = result.get('severity', 'medium')
+            alert.ai_suggestion = result.get('ai_suggestion', '')
+            alert.ai_summary = result.get('ai_summary', '')
+            alert.model_confidence = result.get('model_confidence', 0.0)
+            alert.priority_score = result.get('threat_score', 0)
+            alert.save()
 
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
@@ -127,10 +146,66 @@ class AlertViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-class StaffListView(generics.ListAPIView):
-    queryset = User.objects.filter(is_staff=True)
-    serializer_class = StaffSerializer
+class StaffManageView(APIView):
+    """Manage staff members — list, add, remove."""
     permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        staff = User.objects.filter(is_staff=True)
+        serializer = StaffSerializer(staff, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Add a new staff member."""
+        username = request.data.get('username', '').strip()
+        password = request.data.get('password', '').strip()
+        first_name = request.data.get('first_name', '').strip()
+        last_name = request.data.get('last_name', '').strip()
+
+        if not username or not password:
+            return Response(
+                {'error': 'Username and password are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {'error': f'Username "{username}" already exists'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            is_staff=True,
+        )
+        return Response(StaffSerializer(user).data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        """Remove a staff member."""
+        staff_id = request.data.get('staff_id')
+        if not staff_id:
+            return Response(
+                {'error': 'staff_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            user = User.objects.get(id=staff_id, is_staff=True)
+            # Don't allow deleting superusers
+            if user.is_superuser:
+                return Response(
+                    {'error': 'Cannot remove superuser accounts'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            user.delete()
+            return Response({'status': 'Staff member removed', 'id': staff_id})
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Staff member not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class AIChatView(APIView):
@@ -151,6 +226,30 @@ class AIChatView(APIView):
         return Response({
             'response': response,
             'timestamp': timezone.now().isoformat(),
+        })
+
+
+class ClassifyTextView(APIView):
+    """
+    Classify crisis text using the local dual-head BERT model.
+    Returns the predicted emergency type, confidence, and severity score.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        text = request.data.get('text', '')
+        if not text.strip():
+            return Response(
+                {'error': 'Text is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        result = classify_crisis(text)
+        return Response({
+            'predicted_type': result['predicted_type'],
+            'confidence': result['confidence'],
+            'severity_score': result['severity_score'],
+            'all_scores': result['all_scores'],
         })
 
 
@@ -217,7 +316,7 @@ class AnalyticsView(APIView):
         medium_count = all_alerts.filter(severity='medium').count()
         low_count = all_alerts.filter(severity='low').count()
 
-        # ═══ NEW: Peak hours analysis ═══
+        # ═══ Peak hours analysis ═══
         peak_hours = list(
             all_alerts.annotate(hour=TruncHour('timestamp'))
             .values('hour')
@@ -227,13 +326,13 @@ class AnalyticsView(APIView):
         for item in peak_hours:
             item['hour'] = item['hour'].strftime('%Y-%m-%d %H:00') if item['hour'] else ''
 
-        # ═══ NEW: Heatmap data (lat/lng density) ═══
+        # ═══ Heatmap data (lat/lng density) ═══
         heatmap_data = list(
             all_alerts.filter(lat__isnull=False, lng__isnull=False)
             .values('lat', 'lng', 'severity', 'threat_score')
         )
 
-        # ═══ NEW: Staff performance ═══
+        # ═══ Staff performance ═══
         staff_performance = []
         staff_with_alerts = User.objects.filter(
             assigned_alerts__timestamp__gte=since
@@ -274,61 +373,4 @@ class AnalyticsView(APIView):
             'heatmap_data': heatmap_data,
             'staff_performance': staff_performance,
             'ai_insights': ai_insights,
-        })
-
-
-class SeedDataView(APIView):
-    """Seed sample test data for demonstrations."""
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        import random
-        from datetime import timedelta as td
-
-        emergency_types = ['fire', 'medical', 'security', 'natural_disaster', 'other']
-        severities = ['low', 'medium', 'critical']
-        statuses = ['reported', 'acknowledged', 'responding', 'resolved']
-        rooms = ['101', '205', '312', '401', '502', '603', 'Lobby', 'Pool', 'Restaurant', 'Gym']
-        details_map = {
-            'fire': ['Smoke detected near elevator', 'Small fire in kitchen', 'Fire alarm triggered on floor 3'],
-            'medical': ['Guest collapsed in lobby', 'Allergic reaction reported', 'Guest requesting first aid'],
-            'security': ['Suspicious person near pool', 'Unauthorized entry attempt', 'Noise complaint escalated'],
-            'natural_disaster': ['Tremor felt on upper floors', 'Flooding in basement', 'High wind warning'],
-            'other': ['Power outage in wing B', 'Water leak in room', 'Elevator malfunction'],
-        }
-
-        created = []
-        for i in range(15):
-            etype = random.choice(emergency_types)
-            sev = random.choice(severities)
-            stat = random.choice(statuses)
-            score = {'low': random.randint(10, 40), 'medium': random.randint(41, 74), 'critical': random.randint(75, 100)}[sev]
-
-            ts = timezone.now() - td(
-                days=random.randint(0, 25),
-                hours=random.randint(0, 23),
-                minutes=random.randint(0, 59),
-            )
-            resolved_at = ts + td(minutes=random.randint(5, 120)) if stat == 'resolved' else None
-
-            alert = Alert.objects.create(
-                emergency_type=etype,
-                severity=sev,
-                status=stat,
-                threat_score=score,
-                priority_score=score,
-                lat=28.6139 + random.uniform(-0.01, 0.01),
-                lng=77.2090 + random.uniform(-0.01, 0.01),
-                room_number=random.choice(rooms),
-                details=random.choice(details_map[etype]),
-                timestamp=ts,
-                resolved_at=resolved_at,
-                ai_suggestion=f'AI: Handle {etype} emergency with standard protocol.',
-                ai_summary=f'{etype.title()} incident — severity {sev}.',
-            )
-            created.append(alert.id)
-
-        return Response({
-            'message': f'Created {len(created)} sample incidents.',
-            'ids': created,
         })

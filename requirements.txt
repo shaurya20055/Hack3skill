@@ -7,3 +7,8 @@ daphne
 channels-redis
 google-genai
 python-dotenv
+fastapi
+uvicorn
+torch
+transformers
+tokenizers

@@ -20,10 +20,10 @@ class Property(models.Model):
 class Alert(models.Model):
     EMERGENCY_TYPES = [
         ('fire', 'Fire'),
+        ('flood', 'Flood'),
         ('medical', 'Medical Emergency'),
+        ('routine', 'Routine'),
         ('security', 'Security Threat'),
-        ('natural_disaster', 'Natural Disaster'),
-        ('other', 'Other'),
     ]
 
     STATUS_CHOICES = [
@@ -44,7 +44,7 @@ class Alert(models.Model):
         related_name='alerts'
     )
     emergency_type = models.CharField(
-        max_length=30, choices=EMERGENCY_TYPES, default='other'
+        max_length=30, choices=EMERGENCY_TYPES, default='routine'
     )
     severity = models.CharField(
         max_length=10, choices=SEVERITY_CHOICES, default='medium'
@@ -71,6 +71,7 @@ class Alert(models.Model):
     priority_score = models.IntegerField(default=0, help_text='AI-computed priority score')
     escalated = models.BooleanField(default=False, help_text='Whether this alert has been auto-escalated')
     group_id = models.CharField(max_length=50, blank=True, default='', help_text='Group ID for related incidents')
+    model_confidence = models.FloatField(default=0.0, help_text='ML model prediction confidence (0.0-1.0)')
 
     class Meta:
         ordering = ['-timestamp']

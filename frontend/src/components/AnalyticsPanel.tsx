@@ -22,10 +22,10 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 const TYPE_COLORS: Record<string, string> = {
   fire: '#ff2d55',
+  flood: '#0ea5e9',
   medical: '#ff6b9d',
   security: '#ff9500',
-  natural_disaster: '#bf5af2',
-  other: '#8892b0',
+  routine: '#8892b0',
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
