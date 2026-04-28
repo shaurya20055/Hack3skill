@@ -1,5 +1,6 @@
 # ─── Python / Django ───
 __pycache__/
+crisis_backend/model/
 *.py[cod]
 *$py.class
 *.so
