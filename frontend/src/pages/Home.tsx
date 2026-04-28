@@ -4,7 +4,7 @@ import './Home.css';
 import {
   Shield, Zap, MapPin, Activity, Radio, ArrowRight,
   Flame, MessageCircle, BarChart3, Bot, Megaphone, Globe,
-  Star, Phone, Navigation, FileText, Users, HeartPulse
+  Star, Phone, Navigation, FileText, HeartPulse
 } from 'lucide-react';
 
 /* ───── Snowflake Particle Component ───── */
@@ -83,8 +83,6 @@ const SnowParticles = () => {
   );
 };
 
-
-
 /* ───── Aurora Borealis Effect ───── */
 const AuroraBorealis = () => (
   <div className="aurora-container">
@@ -97,18 +95,12 @@ const AuroraBorealis = () => (
 /* ───── Main Home Component ───── */
 export const Home = () => {
   const [scrollY, setScrollY] = useState(0);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
-    const handleMouse = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
-    };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('mousemove', handleMouse, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousemove', handleMouse);
     };
   }, []);
 
@@ -214,8 +206,6 @@ export const Home = () => {
         </div>
 
         <div className="hero-content">
-
-
           {/* Badge */}
           <div className="hero-badge animate-ice-in" style={{ animationDelay: '0.2s' }}>
             <span className="badge-dot" />
@@ -268,10 +258,9 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* ─── Features Section 1: Features Left + Doodle Right (Discord Style) ─── */}
+      {/* ─── Features Section 1 ─── */}
       <section className="features-discord-section">
         <div className="discord-card" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(30, 58, 138, 0.6))' }}>
-          {/* Features list on the left */}
           <div className="features-list-side">
             <div className="section-badge">CAPABILITIES</div>
             <h2 className="section-title" style={{ textAlign: 'left' }}>
@@ -292,7 +281,6 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Big doodle on the right inside dark frame */}
           <div className="features-doodle-side discord-doodle">
             <div className="discord-image-frame">
               <div className="doodle-cloud" />
@@ -306,10 +294,9 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* ─── Features Section 2: Features Left + Doodle Right (Discord Style) ─── */}
+      {/* ─── Features Section 2 ─── */}
       <section className="features-discord-section">
         <div className="discord-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(49, 46, 129, 0.6))' }}>
-          {/* Features list on the left */}
           <div className="features-list-side">
             <div className="section-badge">COORDINATION</div>
             <h2 className="section-title" style={{ textAlign: 'left' }}>
@@ -330,7 +317,6 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Doodle on the right inside dark frame */}
           <div className="features-doodle-side discord-doodle">
             <div className="discord-image-frame">
               <div className="doodle-cloud" />
@@ -348,17 +334,13 @@ export const Home = () => {
       <section className="features-discord-section">
         <div className="discord-card discord-card-full" style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(30, 58, 138, 0.55))' }}>
           <div className="section-header" style={{ marginBottom: '3rem' }}>
-            <div className="section-badge">
-              PROCESS
-            </div>
+            <div className="section-badge">PROCESS</div>
             <h2 className="section-title">How It Works</h2>
             <p className="section-desc">From trigger to coordinated response in under one second.</p>
           </div>
 
           <div className="timeline-track">
-            {/* Connecting ice beam */}
             <div className="timeline-beam" />
-
             {steps.map((item, i) => (
               <div
                 key={i}
@@ -452,7 +434,6 @@ export const Home = () => {
         <div className="cta-container">
           <div className="cta-frost-bg" />
           <div className="cta-aurora" />
-
           <div className="cta-content">
             <h2 className="cta-title">Ready to Protect Your Property?</h2>
             <p className="cta-desc">

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import gsap from 'gsap';
 import {
-  ShieldAlert, XCircle, CheckCircle2, Shield, MapPin,
+  ShieldAlert, XCircle, CheckCircle2, Shield, MapPin, AlertTriangle,
   Flame, HeartPulse, ShieldCheck, Droplets, ClipboardList, Send
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -38,7 +38,7 @@ export const Guest = () => {
           setSystemBroadcast(data.message);
           setTimeout(() => setSystemBroadcast(null), 15000);
         }
-      } catch {}
+      } catch { }
     },
     shouldReconnect: () => true,
   });
@@ -195,11 +195,10 @@ export const Guest = () => {
                   <button
                     key={et.id}
                     onClick={() => setEmergencyType(et.id)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all cursor-pointer ${
-                      emergencyType === et.id
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all cursor-pointer ${emergencyType === et.id
                         ? `bg-gradient-to-br ${et.color} border-transparent text-white ${et.glow}`
                         : `${et.inactive} border hover:border-white/[0.1]`
-                    }`}
+                      }`}
                   >
                     <et.icon className="w-6 h-6" />
                     <span className="text-[10px] font-bold font-mono uppercase tracking-wider">{et.label}</span>

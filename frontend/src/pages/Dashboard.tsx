@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useWebSocket } from '../useWebSocket';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
@@ -13,7 +13,7 @@ import {
   AlertCircle, MapPin, Activity, Check, Shield, LogOut, Clock, X,
   Flame, HeartPulse, ShieldCheck, Droplets, ClipboardList,
   BarChart3, Users, MessageCircle, Radio, Send, Megaphone, ChevronRight, Sparkles,
-  ArrowUpDown, History, UserPlus, UserMinus, Trash2, Plus, TrendingUp
+  ArrowUpDown, History, UserPlus, Trash2, Plus, TrendingUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AIChat } from '../components/AIChat';
@@ -75,7 +75,7 @@ export const Dashboard = () => {
   const [selectedAlert, setSelectedAlert] = useState<AlertData | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('show_issues');
   const [analytics, setAnalytics] = useState<any>(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [setAnalyticsLoading] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [broadcastInput, setBroadcastInput] = useState('');
@@ -116,7 +116,7 @@ export const Dashboard = () => {
       .then((data) => {
         if (Array.isArray(data)) setStaffList(data);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const { sendJsonMessage } = useWebSocket(WS_URL, {
@@ -126,8 +126,8 @@ export const Dashboard = () => {
         addAlert(data.alert);
         try {
           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-          audio.play().catch(() => {});
-        } catch {}
+          audio.play().catch(() => { });
+        } catch { }
       }
       if (data.type === 'chat_message') {
         addChatMessage(data.message);
@@ -384,11 +384,10 @@ export const Dashboard = () => {
                 setActiveTab(tab.id);
                 if (tab.id === 'show_issues' && !analytics) loadAnalytics();
               }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/[0.05]'
-                  : 'text-[#64748b] hover:text-white hover:bg-white/[0.02]'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-all cursor-pointer ${activeTab === tab.id
+                ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/[0.05]'
+                : 'text-[#64748b] hover:text-white hover:bg-white/[0.02]'
+                }`}
             >
               <tab.icon className="w-3.5 h-3.5" />
               {tab.label}
@@ -407,21 +406,19 @@ export const Dashboard = () => {
                 <div className="flex-1 flex gap-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-0.5">
                   <button
                     onClick={() => setSortMode('time')}
-                    className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                      sortMode === 'time'
-                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                        : 'text-[#64748b] hover:text-white hover:bg-white/[0.04]'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${sortMode === 'time'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                      : 'text-[#64748b] hover:text-white hover:bg-white/[0.04]'
+                      }`}
                   >
                     <Clock className="w-3 h-3" /> Recent
                   </button>
                   <button
                     onClick={() => setSortMode('severity')}
-                    className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                      sortMode === 'severity'
-                        ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                        : 'text-[#64748b] hover:text-white hover:bg-white/[0.04]'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${sortMode === 'severity'
+                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                      : 'text-[#64748b] hover:text-white hover:bg-white/[0.04]'
+                      }`}
                   >
                     <ArrowUpDown className="w-3 h-3" /> Severity
                   </button>
@@ -453,11 +450,10 @@ export const Dashboard = () => {
                       <button
                         key={alert.id}
                         onClick={() => setSelectedAlert(alert)}
-                        className={`w-full text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'border-indigo-500/40 bg-indigo-500/[0.06]'
-                            : 'border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] hover:bg-white/[0.04]'
-                        }`}
+                        className={`w-full text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${isSelected
+                          ? 'border-indigo-500/40 bg-indigo-500/[0.06]'
+                          : 'border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] hover:bg-white/[0.04]'
+                          }`}
                       >
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center gap-2">
@@ -726,9 +722,8 @@ export const Dashboard = () => {
                     return (
                       <div key={staff.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.1] transition-all group">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm ${
-                            ['bg-gradient-to-br from-indigo-500 to-purple-600', 'bg-gradient-to-br from-cyan-500 to-blue-600', 'bg-gradient-to-br from-emerald-500 to-teal-600', 'bg-gradient-to-br from-amber-500 to-orange-600', 'bg-gradient-to-br from-pink-500 to-rose-600'][i % 5]
-                          }`}>
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm ${['bg-gradient-to-br from-indigo-500 to-purple-600', 'bg-gradient-to-br from-cyan-500 to-blue-600', 'bg-gradient-to-br from-emerald-500 to-teal-600', 'bg-gradient-to-br from-amber-500 to-orange-600', 'bg-gradient-to-br from-pink-500 to-rose-600'][i % 5]
+                            }`}>
                             {(staff.first_name?.[0] || staff.username[0]).toUpperCase()}
                           </div>
                           <div>
@@ -862,7 +857,7 @@ export const Dashboard = () => {
                   { label: 'Critical', color: '#ef4444' },
                   { label: 'Medium', color: '#f59e0b' },
                   { label: 'Low', color: '#10b981' },
-                ].map(({label, color}) => (
+                ].map(({ label, color }) => (
                   <div key={label} className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}60` }} />
                     <span className="text-xs text-[#94a3b8] font-medium uppercase tracking-wider">{label}</span>
@@ -1178,15 +1173,14 @@ export const Dashboard = () => {
                               }
                             }}
                             disabled={!isNext && step !== 'resolved'}
-                            className={`flex-1 py-2 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                              isCurrent
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                                : isActive
+                            className={`flex-1 py-2 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${isCurrent
+                              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                              : isActive
                                 ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/20'
                                 : isNext
-                                ? 'bg-white/[0.04] text-[#64748b] border border-white/[0.08] hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20'
-                                : 'bg-white/[0.02] text-[#334155] border border-white/[0.04]'
-                            }`}
+                                  ? 'bg-white/[0.04] text-[#64748b] border border-white/[0.08] hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20'
+                                  : 'bg-white/[0.02] text-[#334155] border border-white/[0.04]'
+                              }`}
                           >
                             {STATUS_LABELS[step]}
                           </button>

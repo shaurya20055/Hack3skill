@@ -3,7 +3,7 @@ import { useAlertStore } from '../store';
 import type { AlertData } from '../store';
 import { useNavigate } from 'react-router-dom';
 import {
-  AlertCircle, Clock, History, MapPin,
+  History, MapPin,
   Shield, LogOut, Send, ChevronRight, CheckCircle2,
   Flame, HeartPulse, ShieldCheck, Droplets, ClipboardList,
   Plus, Eye, Sparkles
@@ -116,7 +116,7 @@ export const CustomerDashboard = () => {
           const data = await res.json();
           setAiSuggestion({ type: data.predicted_type, confidence: data.confidence });
         }
-      } catch {}
+      } catch { }
     }, 600);
     setClassifyTimeout(timeout);
   };
@@ -195,11 +195,10 @@ export const CustomerDashboard = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === tab.id
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${activeTab === tab.id
                   ? 'bg-gradient-to-r from-cyan-500/[0.12] to-teal-500/[0.06] text-cyan-400 border border-cyan-500/20'
                   : 'text-[#64748b] hover:text-white hover:bg-white/[0.04]'
-              }`}
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -257,11 +256,10 @@ export const CustomerDashboard = () => {
                         key={et.id}
                         type="button"
                         onClick={() => setEmergencyType(et.id)}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all cursor-pointer ${
-                          emergencyType === et.id
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all cursor-pointer ${emergencyType === et.id
                             ? `bg-gradient-to-br ${et.active} border-transparent text-white shadow-lg`
                             : `${et.inactive} border hover:border-white/[0.1]`
-                        }`}
+                          }`}
                       >
                         <et.icon className="w-6 h-6" />
                         <span className="text-[10px] font-bold font-mono uppercase tracking-wider">{et.label}</span>
@@ -398,13 +396,12 @@ export const CustomerDashboard = () => {
                           return (
                             <div key={step} className="flex items-center gap-1 flex-1">
                               <div
-                                className={`flex-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all ${
-                                  isCurrent
+                                className={`flex-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all ${isCurrent
                                     ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20'
                                     : isActive
-                                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20'
-                                    : 'bg-white/[0.02] text-[#334155] border border-white/[0.04]'
-                                }`}
+                                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20'
+                                      : 'bg-white/[0.02] text-[#334155] border border-white/[0.04]'
+                                  }`}
                               >
                                 {STATUS_LABELS[step]}
                               </div>
@@ -489,11 +486,10 @@ export const CustomerDashboard = () => {
                             </span>
                           </td>
                           <td className="px-5 py-3.5">
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg uppercase font-mono ${
-                              issue.status === 'resolved'
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg uppercase font-mono ${issue.status === 'resolved'
                                 ? 'bg-emerald-500/10 text-emerald-400'
                                 : 'bg-white/[0.04] text-[#64748b]'
-                            }`}>
+                              }`}>
                               {issue.status}
                             </span>
                           </td>
