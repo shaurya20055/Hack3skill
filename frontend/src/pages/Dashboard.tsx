@@ -657,9 +657,20 @@ export const Dashboard = () => {
                           )}
                           <button
                             onClick={() => updateAlertStatus(alert.id, 'responding')}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
+                            disabled={alert.status === 'responding' || alert.status === 'resolved'}
+                            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-lg ${
+                              alert.status === 'responding'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 cursor-default'
+                                : alert.status === 'resolved'
+                                  ? 'bg-white/[0.04] text-[#334155] border border-white/[0.04] cursor-not-allowed'
+                                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20 cursor-pointer'
+                            }`}
                           >
-                            <Send className="w-3 h-3" /> Dispatch
+                            {alert.status === 'responding' ? (
+                              <><Check className="w-3 h-3" /> Dispatched</>
+                            ) : (
+                              <><Send className="w-3 h-3" /> Dispatch</>
+                            )}
                           </button>
                         </div>
                       </div>
