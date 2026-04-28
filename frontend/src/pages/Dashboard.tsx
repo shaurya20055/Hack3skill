@@ -237,6 +237,27 @@ export const Dashboard = () => {
     navigate('/login-select');
   };
 
+  const handleDeleteAlert = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to remove this issue?')) return;
+    
+    try {
+      const res = await fetch(`${API}/alerts/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        removeAlert(id);
+        setResolvedAlerts((prev) => prev.filter((a) => a.id !== id));
+        if (selectedAlert?.id === id) setSelectedAlert(null);
+      } else {
+        console.error('Failed to delete alert');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // ── Staff management ──
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -481,9 +502,18 @@ export const Dashboard = () => {
                             <span className={`w-1.5 h-1.5 rounded-full ${sevColors.dot}`} />
                             {sev}
                           </div>
-                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#64748b] uppercase`}>
-                            {alert.status}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#64748b] uppercase`}>
+                              {alert.status}
+                            </span>
+                            <button
+                              onClick={(e) => handleDeleteAlert(alert.id, e)}
+                              className="p-1 hover:bg-red-500/20 text-[#64748b] hover:text-red-400 rounded-md transition-colors"
+                              title="Remove Issue"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </button>
                     );
@@ -531,9 +561,18 @@ export const Dashboard = () => {
                               {eType.replace('_', ' ').replace(/^\w/, (c: string) => c.toUpperCase())} #{alert.id}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Check className="w-3 h-3 text-emerald-500" />
-                            <span className="text-[10px] text-emerald-500 font-semibold uppercase">Resolved</span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <Check className="w-3 h-3 text-emerald-500" />
+                              <span className="text-[10px] text-emerald-500 font-semibold uppercase">Resolved</span>
+                            </div>
+                            <button
+                              onClick={(e) => handleDeleteAlert(alert.id, e)}
+                              className="p-1 hover:bg-red-500/20 text-[#64748b] hover:text-red-400 rounded-md transition-colors"
+                              title="Remove Issue"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                         {alert.details && (

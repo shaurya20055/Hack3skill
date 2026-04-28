@@ -65,6 +65,11 @@ class Alert(models.Model):
     )
     ai_suggestion = models.TextField(blank=True, default='')
     ai_summary = models.TextField(blank=True, default='')
+    reported_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='reported_alerts',
+        help_text='The user who created this alert'
+    )
     resolved_at = models.DateTimeField(null=True, blank=True)
 
     # New fields for enhanced functionality

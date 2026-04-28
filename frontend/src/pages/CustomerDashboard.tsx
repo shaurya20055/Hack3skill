@@ -83,7 +83,7 @@ export const CustomerDashboard = () => {
   const fetchIssues = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/alerts/`, {
+      const res = await fetch(`${API}/alerts/?mine=true`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();

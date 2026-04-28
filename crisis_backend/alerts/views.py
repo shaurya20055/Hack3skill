@@ -34,9 +34,16 @@ class AlertViewSet(viewsets.ModelViewSet):
     serializer_class = AlertSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # If ?mine=true is passed, only return alerts created by this user
+        if self.request.query_params.get('mine') == 'true':
+            qs = qs.filter(reported_by=self.request.user)
+        return qs
+
     def perform_create(self, serializer):
         """Run ML classification on every alert created via REST API."""
-        alert = serializer.save()
+        alert = serializer.save(reported_by=self.request.user)
 
         # Classify using the ML model
         classify_text = alert.details.strip() if alert.details else alert.emergency_type
@@ -51,6 +58,18 @@ class AlertViewSet(viewsets.ModelViewSet):
             alert.model_confidence = result.get('model_confidence', 0.0)
             alert.priority_score = result.get('threat_score', 0)
             alert.save()
+
+    def destroy(self, request, *args, **kwargs):
+        """Only staff members can delete alerts."""
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Only staff members can delete alerts.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        alert = self.get_object()
+        alert_id = alert.id
+        alert.delete()
+        return Response({'status': 'Alert deleted', 'alert_id': alert_id})
 
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
