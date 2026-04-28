@@ -75,7 +75,7 @@ export const Dashboard = () => {
   const [selectedAlert, setSelectedAlert] = useState<AlertData | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('show_issues');
   const [analytics, setAnalytics] = useState<any>(null);
-  const [setAnalyticsLoading] = useState(false);
+  const [, setAnalyticsLoading] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [broadcastInput, setBroadcastInput] = useState('');
@@ -311,7 +311,6 @@ export const Dashboard = () => {
   });
   const totalIssuesCount = allIssues.length || 1;
   const severityPieData = Object.entries(severityCounts).map(([name, value]) => {
-    const sevColor = SEVERITY_COLORS[name] ? SEVERITY_COLORS[name].text.replace('text-', '') : 'slate-400';
     // Map tailwind text shades to hex for recharts
     const hexColor = name === 'critical' ? '#ef4444' : name === 'medium' ? '#f59e0b' : '#10b981';
     return {
