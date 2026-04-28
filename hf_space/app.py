@@ -234,3 +234,6 @@ def predict(request: PredictRequest):
         severity_score=round(severity_score, 1),
         all_scores=all_scores,
     )
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
