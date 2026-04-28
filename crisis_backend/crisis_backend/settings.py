@@ -36,7 +36,7 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'crisis-backend-t589.onrender.com,.vercel.app,localhost,127.0.1').split(',')
 
 
 # Application definition
@@ -88,52 +88,48 @@ TEMPLATES = [
 WSGI_APPLICATION = 'crisis_backend.wsgi.application'
 ASGI_APPLICATION = 'crisis_backend.asgi.application'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://crisis-backend-t589.onrender.com",
+    # Allow Vercel domains (wildcard for previews, or specific if needed)
+]
+# If using a specific frontend vercel domain, it should be in CORS_ALLOWED_ORIGINS,
+# but for wildcard subdomains, django-cors-headers supports CORS_ALLOWED_ORIGIN_REGEXES
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://crisis-backend-t589.onrender.com",
+    "https://*.vercel.app"
+]
 
 # ── Channel Layers ──
-# Use Redis in production, InMemory for local dev
-REDIS_URL = os.environ.get('REDIS_URL', '')
-
-if REDIS_URL:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [REDIS_URL],
-            },
-        },
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [os.environ.get("REDIS_URL", "redis://localhost:6379")]},
     }
-else:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer"
-        },
-    }
+}
 
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
-
-if DATABASE_URL and DATABASE_URL.startswith('postgresql'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': DATABASE_URL.split('/')[-1],
-            'USER': DATABASE_URL.split('://')[1].split(':')[0],
-            'PASSWORD': DATABASE_URL.split(':')[2].split('@')[0],
-            'HOST': DATABASE_URL.split('@')[1].split(':')[0],
-            'PORT': DATABASE_URL.split(':')[-1].split('/')[0],
-        }
+# PostgreSQL / Supabase Configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password validation
