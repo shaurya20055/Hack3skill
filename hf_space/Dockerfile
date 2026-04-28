@@ -11,7 +11,7 @@ COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app code
-COPY --chown=user hf_space/app.py .
+COPY --chown=user app.py .
 # Switch to non-root user
 USER user
 
