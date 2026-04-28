@@ -10,5 +10,3 @@ python-dotenv
 requests
 whitenoise
 psycopg2-binary
-uvicorn
-fastapi
