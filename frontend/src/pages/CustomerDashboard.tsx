@@ -9,8 +9,7 @@ import {
   Plus, Eye, Sparkles
 } from 'lucide-react';
 import gsap from 'gsap';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API } from '../config';
 
 const EMERGENCY_TYPES = [
   { id: 'fire', label: 'Fire', icon: Flame, color: '#ff2d55', inactive: 'bg-[#ff2d55]/[0.08] border-[#ff2d55]/15 text-[#ff2d55]', active: 'from-[#ff2d55] to-[#d91e48]' },

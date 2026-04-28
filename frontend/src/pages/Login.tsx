@@ -4,6 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Lock, User as UserIcon, Shield, Users } from 'lucide-react';
 import gsap from 'gsap';
 import type { UserRole } from '../store';
+import { API } from '../config';
 
 export const Login = () => {
   const [searchParams] = useSearchParams();
@@ -31,7 +32,7 @@ export const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+      const res = await fetch(`${API}/auth/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, X, Sparkles } from 'lucide-react';
 import gsap from 'gsap';
+import { API } from '../config';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -13,7 +14,7 @@ interface AIChatProps {
   floating?: boolean;
 }
 
-const API_URL = 'http://127.0.0.1:8000/api/ai-chat/';
+const API_URL = `${API}/ai-chat/`;
 
 export const AIChat = ({ context = '', floating = true }: AIChatProps) => {
   const [isOpen, setIsOpen] = useState(!floating);

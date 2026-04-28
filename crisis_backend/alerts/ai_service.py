@@ -1,8 +1,10 @@
 """
 AI Service module for crisis response platform.
 
-Classification is handled by the local dual-head DistilBERT model.
-Google Gemini API is used only for:
+Classification is handled by a remote Hugging Face Spaces microservice
+(dual-head DistilBERT running at shaurya20066-crisis-api.hf.space).
+
+Google Gemini API is used for:
 - Real-time crisis guidance (chat)
 - Incident summarization and suggestions
 - Analytics insights

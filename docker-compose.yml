@@ -1,8 +1,50 @@
 version: '3.8'
 
 services:
+  # ── Redis (Channel Layer for WebSockets) ──
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ── Django Backend (Daphne ASGI) ──
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=crisis_backend.settings
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-django-prod-secret-change-me}
+      - DEBUG=False
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///db.sqlite3}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - db-data:/app/db.sqlite3
+    restart: always
+
+  # ── Frontend (Nginx + React) ──
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  db-data:

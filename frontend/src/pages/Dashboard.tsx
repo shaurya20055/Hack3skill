@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AIChat } from '../components/AIChat';
+import { WS_URL, API } from '../config';
 
 // Fix leaflet icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -25,9 +26,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-
-const WS_URL = 'ws://127.0.0.1:8000/ws/alerts/';
-const API = 'http://127.0.0.1:8000/api';
 
 const TYPE_ICONS: Record<string, any> = {
   fire: Flame,

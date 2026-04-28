@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, UserPlus, User as UserIcon, Lock, Mail } from 'lucide-react';
 import gsap from 'gsap';
+import { API } from '../config';
 
 export const Register = () => {
   const [username, setUsername] = useState('');
@@ -30,7 +31,7 @@ export const Register = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/register/', {
+      const res = await fetch(`${API}/auth/register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password, first_name: firstName, last_name: lastName }),

@@ -7,8 +7,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AIChat } from '../components/AIChat';
-
-const WS_URL = 'ws://127.0.0.1:8000/ws/alerts/';
+import { WS_URL } from '../config';
 
 const EMERGENCY_TYPES = [
   { id: 'fire', label: 'Fire', icon: Flame, color: 'from-[#ff2d55] to-[#d91e48]', glow: 'shadow-[0_0_20px_rgba(255,45,85,0.3)]', inactive: 'bg-[#ff2d55]/[0.08] border-[#ff2d55]/15 text-[#ff2d55]' },
