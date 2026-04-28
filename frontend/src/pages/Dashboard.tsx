@@ -240,7 +240,7 @@ export const Dashboard = () => {
   const handleDeleteAlert = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to remove this issue?')) return;
-    
+
     try {
       const res = await fetch(`${API}/alerts/${id}/`, {
         method: 'DELETE',
@@ -395,14 +395,12 @@ export const Dashboard = () => {
             { id: 'send_help' as TabType, icon: Radio, label: 'Help' },
             { id: 'manage_staff' as TabType, icon: Users, label: 'Staff' },
             { id: 'mask_cat' as TabType, icon: Shield, label: 'CAT' },
-            { id: 'analytics' as TabType, icon: TrendingUp, label: 'Analytics' },
           ]).map((tab) => (
             <button
               key={tab.id}
               onClick={() => {
                 setActiveTab(tab.id);
                 if (tab.id === 'show_issues' && !analytics) loadAnalytics();
-                if (tab.id === 'analytics') setSelectedAlert(null);
               }}
               className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-all cursor-pointer ${activeTab === tab.id
                 ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/[0.05]'
@@ -419,7 +417,7 @@ export const Dashboard = () => {
         <div className="flex-1 overflow-y-auto">
 
           {/* === Active Issues Tab === */}
-          {['show_issues', 'analytics'].includes(activeTab) && (
+          {activeTab === 'show_issues' && (
             <>
               {/* Sort bar + Broadcast */}
               <div className="p-3 flex gap-2">
@@ -469,10 +467,7 @@ export const Dashboard = () => {
                     return (
                       <button
                         key={alert.id}
-                        onClick={() => {
-                          setSelectedAlert(alert);
-                          if (activeTab === 'analytics') setActiveTab('show_issues');
-                        }}
+                        onClick={() => setSelectedAlert(alert)}
                         className={`w-full text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${isSelected
                           ? 'border-indigo-500/40 bg-indigo-500/[0.06]'
                           : 'border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] hover:bg-white/[0.04]'
@@ -657,14 +652,9 @@ export const Dashboard = () => {
                           )}
                           <button
                             onClick={() => updateAlertStatus(alert.id, 'responding')}
-                            disabled={alert.status === 'responding' || alert.status === 'resolved'}
-                            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-lg ${
-                              alert.status === 'responding' || alert.status === 'resolved'
-                                ? 'bg-indigo-500/20 text-indigo-400 cursor-not-allowed border border-indigo-500/20'
-                                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20 cursor-pointer'
-                            }`}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
                           >
-                            <Send className="w-3 h-3" /> {alert.status === 'responding' ? 'Dispatched' : 'Dispatch'}
+                            <Send className="w-3 h-3" /> Dispatch
                           </button>
                         </div>
                       </div>
