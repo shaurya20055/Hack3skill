@@ -94,6 +94,8 @@ ASGI_APPLICATION = 'crisis_backend.asgi.application'
 # ── CORS Configuration ──
 CORS_ALLOWED_ORIGINS = [
     "https://crisis-backend-t589.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.vercel\.app$",
