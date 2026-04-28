@@ -67,7 +67,7 @@ function timeAgo(timestamp: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-type TabType = 'show_issues' | 'history' | 'send_help' | 'manage_staff' | 'mask_cat' | 'heatmap' | 'severity';
+type TabType = 'show_issues' | 'history' | 'send_help' | 'manage_staff' | 'mask_cat' | 'heatmap' | 'severity' | 'analytics';
 type SortMode = 'time' | 'severity';
 
 export const Dashboard = () => {
@@ -395,12 +395,14 @@ export const Dashboard = () => {
             { id: 'send_help' as TabType, icon: Radio, label: 'Help' },
             { id: 'manage_staff' as TabType, icon: Users, label: 'Staff' },
             { id: 'mask_cat' as TabType, icon: Shield, label: 'CAT' },
+            { id: 'analytics' as TabType, icon: BarChart3, label: 'Analytics' },
           ]).map((tab) => (
             <button
               key={tab.id}
               onClick={() => {
                 setActiveTab(tab.id);
                 if (tab.id === 'show_issues' && !analytics) loadAnalytics();
+                if (tab.id === 'analytics') setSelectedAlert(null);
               }}
               className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-all cursor-pointer ${activeTab === tab.id
                 ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/[0.05]'
@@ -417,7 +419,7 @@ export const Dashboard = () => {
         <div className="flex-1 overflow-y-auto">
 
           {/* === Active Issues Tab === */}
-          {activeTab === 'show_issues' && (
+          {(activeTab === 'show_issues' || activeTab === 'analytics') && (
             <>
               {/* Sort bar + Broadcast */}
               <div className="p-3 flex gap-2">
@@ -467,7 +469,10 @@ export const Dashboard = () => {
                     return (
                       <button
                         key={alert.id}
-                        onClick={() => setSelectedAlert(alert)}
+                        onClick={() => {
+                          setSelectedAlert(alert);
+                          if (activeTab === 'analytics') setActiveTab('show_issues');
+                        }}
                         className={`w-full text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${isSelected
                           ? 'border-indigo-500/40 bg-indigo-500/[0.06]'
                           : 'border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] hover:bg-white/[0.04]'
