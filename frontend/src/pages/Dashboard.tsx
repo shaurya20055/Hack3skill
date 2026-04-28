@@ -395,8 +395,6 @@ export const Dashboard = () => {
             { id: 'send_help' as TabType, icon: Radio, label: 'Help' },
             { id: 'manage_staff' as TabType, icon: Users, label: 'Staff' },
             { id: 'mask_cat' as TabType, icon: Shield, label: 'CAT' },
-            { id: 'heatmap' as TabType, icon: MapPin, label: 'Heat Map' },
-            { id: 'severity' as TabType, icon: TrendingUp, label: 'Severity %' },
           ]).map((tab) => (
             <button
               key={tab.id}
@@ -879,205 +877,6 @@ export const Dashboard = () => {
             </div>
           )}
 
-          {/* === Heat Map Tab === */}
-          {activeTab === 'heatmap' && (
-            <div className="p-4 h-[calc(100vh-160px)] flex flex-col">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/[0.06] to-blue-500/[0.06] border border-cyan-500/20 mb-4">
-                <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-cyan-400" /> Severity Heat Map
-                </h4>
-                <p className="text-xs text-[#64748b]">Geographical distribution of all active and resolved incidents</p>
-              </div>
-
-              {/* Legend */}
-              <div className="flex items-center gap-6 mb-4 px-2">
-                {[
-                  { label: 'Critical', color: '#ef4444' },
-                  { label: 'Medium', color: '#f59e0b' },
-                  { label: 'Low', color: '#10b981' },
-                ].map(({ label, color }) => (
-                  <div key={label} className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}60` }} />
-                    <span className="text-xs text-[#94a3b8] font-medium uppercase tracking-wider">{label}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex-1 rounded-2xl overflow-hidden border border-white/[0.06] bg-[#0f1420]">
-                <MapContainer
-                  center={[28.6139, 77.2090]}
-                  zoom={12}
-                  scrollWheelZoom={true}
-                  className="w-full h-full"
-                  style={{ minHeight: '400px', backgroundColor: '#0b0f1a' }}
-                >
-                  <TileLayer
-                    attribution='&copy; OpenStreetMap'
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  />
-                  {allIssues.map((issue) => {
-                    const sevColor = issue.severity === 'critical' ? '#ef4444' : issue.severity === 'medium' ? '#f59e0b' : '#10b981';
-                    const radius = issue.severity === 'critical' ? 18 : issue.severity === 'medium' ? 14 : 10;
-                    return (
-                      <CircleMarker
-                        key={`heat-${issue.id}`}
-                        center={[issue.lat || 28.61 + (Math.random() - 0.5) * 0.05, issue.lng || 77.21 + (Math.random() - 0.5) * 0.05]}
-                        radius={radius}
-                        pathOptions={{
-                          color: sevColor,
-                          fillColor: sevColor,
-                          fillOpacity: 0.35,
-                          weight: 2,
-                          opacity: 0.8,
-                        }}
-                      >
-                        <Popup>
-                          <div style={{ color: '#000', fontSize: '12px', minWidth: '150px' }}>
-                            <strong className="text-indigo-600 block mb-1">#{issue.id} — {(issue.emergency_type || 'routine').replace('_', ' ').toUpperCase()}</strong>
-                            <div className="flex justify-between border-b pb-1 mb-1 border-gray-200">
-                              <span className="text-gray-500">Severity:</span>
-                              <span style={{ color: sevColor, fontWeight: 'bold' }} className="uppercase">{issue.severity}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-1 mb-1 border-gray-200">
-                              <span className="text-gray-500">Score:</span>
-                              <span className="font-mono">{issue.threat_score}/100</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Status:</span>
-                              <span className="uppercase text-xs font-bold text-gray-700">{issue.status}</span>
-                            </div>
-                          </div>
-                        </Popup>
-                      </CircleMarker>
-                    );
-                  })}
-                </MapContainer>
-              </div>
-            </div>
-          )}
-
-          {/* === Severity % Tab === */}
-          {activeTab === 'severity' && (
-            <div className="p-4 space-y-4">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/[0.06] to-teal-500/[0.06] border border-emerald-500/20">
-                <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Severity Analysis
-                </h4>
-                <p className="text-xs text-[#64748b]">Breakdown of overall incident severity distribution</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-3 gap-3">
-                  {severityPieData.map((item) => (
-                    <div
-                      key={item.name}
-                      className="p-4 rounded-xl border"
-                      style={{
-                        background: `${item.color}08`,
-                        borderColor: `${item.color}20`,
-                      }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] text-[#94a3b8] uppercase font-bold">{item.name}</span>
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}50` }} />
-                      </div>
-                      <div className="text-2xl font-bold mb-1" style={{ color: item.color }}>{item.value}</div>
-                      <div className="text-[10px] text-[#64748b] font-mono">{item.percent}% of total</div>
-                      {/* Progress bar */}
-                      <div className="mt-3 h-1.5 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.02]">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${item.percent}%`, background: item.color }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                  {/* Pie Chart */}
-                  <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <BarChart3 className="w-3.5 h-3.5" />
-                      Distribution
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                      <PieChart>
-                        <Pie
-                          data={severityPieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={4}
-                          dataKey="value"
-                          stroke="none"
-                        >
-                          {severityPieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            background: '#0f1420',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '12px',
-                            color: '#f0f4ff',
-                            fontSize: '12px',
-                          }}
-                        />
-                        <Legend
-                          verticalAlign="bottom"
-                          iconType="circle"
-                          formatter={(value: string) => <span style={{ color: '#8892b0', fontSize: '11px', fontWeight: 500, marginLeft: '4px' }}>{value}</span>}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Bar Chart */}
-                  <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      Count by Severity
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                      <BarChart data={severityBarData} barCategoryGap="25%">
-                        <XAxis
-                          dataKey="name"
-                          tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{ fill: '#64748b', fontSize: 11 }}
-                          axisLine={{ stroke: 'rgba(255,255,255,0.04)' }}
-                          tickLine={false}
-                          allowDecimals={false}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            background: '#0f1420',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '12px',
-                            color: '#f0f4ff',
-                            fontSize: '12px',
-                          }}
-                          cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                        />
-                        <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                          {severityBarData.map((entry, index) => (
-                            <Cell key={`bar-${index}`} fill={entry.fill} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -1305,10 +1104,131 @@ export const Dashboard = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-[#1e293b]">
-            <Shield className="w-20 h-20 mb-4 opacity-20" />
-            <p className="text-lg font-medium text-[#334155]">Select an incident to view details</p>
-            <p className="text-sm text-[#1e293b] mt-1">Alerts will appear in real-time on the left panel</p>
+          <div className="flex-1 overflow-y-auto bg-[#0b0f1a] grid grid-cols-1 xl:grid-cols-2">
+            {/* Left side: Severity */}
+            <div className="p-6 border-r border-white/[0.06] space-y-6">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/[0.06] to-teal-500/[0.06] border border-emerald-500/20">
+                <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Severity Analysis
+                </h4>
+                <p className="text-xs text-[#64748b]">Breakdown of overall incident severity distribution</p>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-3 gap-3">
+                {severityPieData.map((item) => (
+                  <div
+                    key={item.name}
+                    className="p-4 rounded-xl border"
+                    style={{
+                      background: `${item.color}08`,
+                      borderColor: `${item.color}20`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] text-[#94a3b8] uppercase font-bold">{item.name}</span>
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}50` }} />
+                    </div>
+                    <div className="text-2xl font-bold mb-1" style={{ color: item.color }}>{item.value}</div>
+                    <div className="text-[10px] text-[#64748b] font-mono">{item.percent}% of total</div>
+                    <div className="mt-3 h-1.5 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.02]">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${item.percent}%`, background: item.color }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pie and Bar Charts */}
+              <div className="grid grid-cols-1 gap-6">
+                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                  <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-3.5 h-3.5" /> Distribution
+                  </h3>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie data={severityPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value" stroke="none">
+                        {severityPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ background: '#0f1420', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#f0f4ff', fontSize: '12px' }} />
+                      <Legend verticalAlign="bottom" iconType="circle" formatter={(value: string) => <span style={{ color: '#8892b0', fontSize: '11px', fontWeight: 500, marginLeft: '4px' }}>{value}</span>} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                  <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-3.5 h-3.5" /> Count by Severity
+                  </h3>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <BarChart data={severityBarData} barCategoryGap="25%">
+                      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={{ stroke: 'rgba(255,255,255,0.04)' }} tickLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={{ background: '#0f1420', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#f0f4ff', fontSize: '12px' }} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                        {severityBarData.map((entry, index) => (
+                          <Cell key={`bar-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Right side: Heat Map */}
+            <div className="p-6 flex flex-col min-h-[500px]">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/[0.06] to-blue-500/[0.06] border border-cyan-500/20 mb-6">
+                <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-cyan-400" /> Severity Heat Map
+                </h4>
+                <p className="text-xs text-[#64748b]">Geographical distribution of all active and resolved incidents</p>
+              </div>
+
+              <div className="flex items-center gap-6 mb-4 px-2">
+                {[
+                  { label: 'Critical', color: '#ef4444' },
+                  { label: 'Medium', color: '#f59e0b' },
+                  { label: 'Low', color: '#10b981' },
+                ].map(({ label, color }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}60` }} />
+                    <span className="text-xs text-[#94a3b8] font-medium uppercase tracking-wider">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex-1 rounded-2xl overflow-hidden border border-white/[0.06] bg-[#0f1420] min-h-[400px]">
+                <MapContainer center={[28.6139, 77.2090]} zoom={12} scrollWheelZoom={true} className="w-full h-full" style={{ minHeight: '100%', backgroundColor: '#0b0f1a' }}>
+                  <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+                  {allIssues.map((issue) => {
+                    const sevColor = issue.severity === 'critical' ? '#ef4444' : issue.severity === 'medium' ? '#f59e0b' : '#10b981';
+                    const radius = issue.severity === 'critical' ? 18 : issue.severity === 'medium' ? 14 : 10;
+                    return (
+                      <CircleMarker
+                        key={`heat-${issue.id}`}
+                        center={[issue.lat || 28.61 + (Math.random() - 0.5) * 0.05, issue.lng || 77.21 + (Math.random() - 0.5) * 0.05]}
+                        radius={radius}
+                        pathOptions={{ color: sevColor, fillColor: sevColor, fillOpacity: 0.35, weight: 2, opacity: 0.8 }}
+                      >
+                        <Popup>
+                          <div style={{ color: '#000', fontSize: '12px', minWidth: '150px' }}>
+                            <strong className="text-indigo-600 block mb-1">#{issue.id} — {(issue.emergency_type || 'routine').replace('_', ' ').toUpperCase()}</strong>
+                            <div className="flex justify-between border-b pb-1 mb-1 border-gray-200"><span className="text-gray-500">Severity:</span><span style={{ color: sevColor, fontWeight: 'bold' }} className="uppercase">{issue.severity}</span></div>
+                            <div className="flex justify-between border-b pb-1 mb-1 border-gray-200"><span className="text-gray-500">Score:</span><span className="font-mono">{issue.threat_score}/100</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Status:</span><span className="uppercase text-xs font-bold text-gray-700">{issue.status}</span></div>
+                          </div>
+                        </Popup>
+                      </CircleMarker>
+                    );
+                  })}
+                </MapContainer>
+              </div>
+            </div>
           </div>
         )}
       </div>
